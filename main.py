@@ -13,7 +13,7 @@ from pytorch_lightning import LightningModule, Trainer, seed_everything
 from pytorch_lightning.loggers import CSVLogger
 from torch.optim.lr_scheduler import OneCycleLR,MultiStepLR
 from torchmetrics import Accuracy
-from utils_data import get_dataset,NORMALIZERS,Stage
+from download_data import get_dataset,NORMALIZERS,Stage
 import sys
 sys.path.insert(0, './libnas/lib')
 from config_utils import dict2config
