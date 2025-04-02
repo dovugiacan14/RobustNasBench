@@ -22,12 +22,20 @@ def get_eval_arch(target_file, isomorph_file, des_file):
 
     return target
 
-def compute_correlation(): 
+def compute_correlation(zc_file, robustnas_file):
+    with open(zc_file, "r") as zc: 
+        zc_nasbench = json.load(zc)
+    
+    with open(robustnas_file, "r") as rf: 
+        robustnas_file = json.load(rf)
+    
+       
     pass 
 
 
 if __name__ == "__main__": 
     zc_nasbench_file = "dataset/zc_nasbench_201.json"
-    
+    robustnas_file = "dataset/cifar10.json"
+
     pass 
     
