@@ -1,4 +1,30 @@
 import json 
+from scipy.stats import spearmanr
+from collections import defaultdict
+from libnas.lib.utils.search_space import NASBench201SearchSpace
+
+zero_cost_metrics = [
+    "epe_nas", 
+    "fisher", 
+    "grad_norm", 
+    "flops", 
+    "grasp", 
+    "jacov",
+    "l2_norm",
+    "nwot",
+    "params", 
+    "plain", 
+    "snip", 
+    "synflow",
+    "zen", 
+    "swap",
+    "meco", 
+    "meco_opt", 
+    "zico", 
+    "val_accuracy"
+]
+
+nasbench_search_space = NASBench201SearchSpace()
 
 def get_eval_arch(target_file, isomorph_file, des_file): 
     with open(target_file, "r") as tf: 
@@ -22,20 +48,30 @@ def get_eval_arch(target_file, isomorph_file, des_file):
 
     return target
 
-def compute_correlation(zc_file, robustnas_file):
-    with open(zc_file, "r") as zc: 
-        zc_nasbench = json.load(zc)
-    
-    with open(robustnas_file, "r") as rf: 
-        robustnas_file = json.load(rf)
-    
-       
-    pass 
+
+def compute_correlation(zc_nasbench, robustnas, dataset): 
+    if dataset not in zc_nasbench: 
+        return 
+    evaluate_details = zc_nasbench[dataset]
+
+    fgsm_3_acc = []
+    fgsm_8_acc = []
+    pdg_3_acc = []
+    pdg_8_acc = []
+    auto_attack = []
+    for arch in evaluate_details: 
+        continue 
 
 
 if __name__ == "__main__": 
-    zc_nasbench_file = "dataset/zc_nasbench_201.json"
-    robustnas_file = "dataset/cifar10.json"
+    zc_nasbench_file = "dataset/zc_nasbench201.json"
+    with open(zc_nasbench_file, "r") as zc: 
+        zc_nasbench = json.load(zc)
 
-    pass 
+    robustnas_file = "dataset/cifar10.json"
+    with open(robustnas_file, "r") as rf: 
+        robustnas = json.load(rf)
+
+    correlation = compute_correlation(zc_nasbench, robustnas, dataset= "cifar10")
+
     
