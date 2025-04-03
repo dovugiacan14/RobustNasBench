@@ -50,7 +50,7 @@ class NASBench201SearchSpace(NeuralSearchSpace):
         encoded_architecture = [AVAILABLE_OPERATIONS.index(op) for ops in node_ops for op in ops]
         return encoded_architecture
 
-    def decode_architecture(self, encoded_architecture):
+    def decode_architecture(self, encoded_architecture: tuple):
         ops = [AVAILABLE_OPERATIONS[idx] for idx in encoded_architecture]
         return "|{}~0|+|{}~0|{}~1|+|{}~0|{}~1|{}~2|".format(*ops)
 

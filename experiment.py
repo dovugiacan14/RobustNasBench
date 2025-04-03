@@ -1,4 +1,5 @@
 import json 
+import pandas as pd
 from scipy.stats import spearmanr
 from collections import defaultdict
 from libnas.lib.utils.search_space import NASBench201SearchSpace
@@ -54,13 +55,60 @@ def compute_correlation(zc_nasbench, robustnas, dataset):
         return 
     evaluate_details = zc_nasbench[dataset]
 
+    # S1: collect data 
     fgsm_3_acc = []
     fgsm_8_acc = []
     pdg_3_acc = []
     pdg_8_acc = []
     auto_attack = []
-    for arch in evaluate_details: 
-        continue 
+
+    zc_eval_dict = defaultdict(list)
+    for arch, details in evaluate_details.items(): 
+        decode_arch = nasbench_search_space.decode_architecture(eval(arch))
+        robust_evals = robustnas[decode_arch]
+
+        # get information from robustnas 
+        val_fgsm_3 = robust_evals["val_fgsm_3.0_acc"]
+        val_fgsm_8 = robust_evals["val_fgsm_8.0_acc"]
+        val_pgd_3 = robust_evals["val_pgd_3.0_acc"]
+        val_pgd_8 = robust_evals["val_pgd_8.0_acc"]
+
+        fgsm_3_acc.append(val_fgsm_3["threeseed"])
+        fgsm_8_acc.append(val_fgsm_8["threeseed"])
+        pdg_3_acc.append(val_pgd_3["threeseed"])
+        pdg_8_acc.append(val_pgd_8["threeseed"])
+        auto_attack.append(robust_evals["autoattack"])
+
+        # get zero-cost results 
+        for metric in zero_cost_metrics:
+            if metric == "val_accuracy": 
+                zc_eval_dict[metric].append(details[metric])
+            else: 
+                zc_eval_dict[metric].append(details[metric]['score'])
+  
+    # S2: compute Spearman correlation
+    correlation_df = pd.DataFrame(
+        index= ["val_fgsm_3.0_acc", "val_fgsm_8.0_acc", "val_pgd_3.0_acc", "val_pgd_8.0_acc"],
+        columns= zc_eval_dict.keys(),
+        dtype= float
+    )
+    p_value_df = pd.DataFrame(
+        index= ["val_fgsm_3.0_acc", "val_fgsm_8.0_acc", "val_pgd_3.0_acc", "val_pgd_8.0_acc"],
+        columns= zc_eval_dict.keys(),
+        dtype= float
+    )
+    for i, values in zip( ["val_fgsm_3.0_acc", "val_fgsm_8.0_acc", "val_pgd_3.0_acc", "val_pgd_8.0_acc"], [fgsm_3_acc, fgsm_8_acc, pdg_3_acc, pdg_8_acc]):
+        for j in zc_eval_dict.keys(): 
+            corr, p_val = spearmanr(values, zc_eval_dict[j])
+            correlation_df.loc[i, j] = corr
+            p_value_df.loc[i, j] = p_val
+
+    # S3: save result
+    with pd.ExcelWriter(f"{dataset}.xlsx") as writer: 
+        correlation_df.to_excel(writer, sheet_name= "correlation")
+        p_value_df.to_excel(writer, sheet_name= "p_value")
+    
+    print("Done.!")
 
 
 if __name__ == "__main__": 
@@ -72,6 +120,6 @@ if __name__ == "__main__":
     with open(robustnas_file, "r") as rf: 
         robustnas = json.load(rf)
 
-    correlation = compute_correlation(zc_nasbench, robustnas, dataset= "cifar10")
+    compute_correlation(zc_nasbench, robustnas, dataset= "cifar10")
 
     
