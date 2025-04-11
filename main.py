@@ -75,10 +75,10 @@ def parse_argument():
         "--n_runs", type=int, default=2, help="number of experiment runs"
     )
     parser.add_argument(
-        "--metric", type=int, default=1, help="fitness metric", choices=range(0, 13)
+        "--metric", type=int, default=1, help="fitness metric", choices=range(0, 11)
     )
     parser.add_argument(
-        "--attack", type=int, default=1, help="type of attack", choices=range(0, 5)
+        "--attack", type=int, default=1, help="type of attack", choices=range(0, 6)
     )
     parser.add_argument("--seed", type=int, default=0, help="random seed")
     parser.add_argument("--debug", type=int, default=0, help="debug mode (0 or 1)")

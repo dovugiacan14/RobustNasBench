@@ -10,12 +10,12 @@ problem_configuration = {
         "type_of_problem": "single-objective",
     },
     "SO-NAS201-2": {
-        "maxEvals": 1000,
+        "maxEvals": 3000,
         "dataset": "CIFAR-100",
         "type_of_problem": "single-objective",
     },
     "SO-NAS201-3": {
-        "maxEvals": 1000,
+        "maxEvals": 3000,
         "dataset": "ImageNet16-120",
         "type_of_problem": "single-objective",
     },
@@ -43,9 +43,9 @@ problem_configuration = {
 
 population_size_dict = {
     "SO-NAS101": 100,
-    "SO-NAS201-1": 40,
-    "SO-NAS201-2": 40,
-    "SO-NAS201-3": 40,
+    "SO-NAS201-1": 20,
+    "SO-NAS201-2": 20,
+    "SO-NAS201-3": 20,
     "MO-NAS101": 100,
     "MO-NAS201-1": 20,
     "MO-NAS201-2": 20,
@@ -55,17 +55,15 @@ population_size_dict = {
 zero_cost_metrics = {
     0:  "epe_nas", 
     1:  "fisher", 
-    2:  "flops", 
-    3:  "grad_norm", 
-    4:  "grasp",
-    5:  "l2_norm", 
-    6:  "jacov", 
-    7:  "nwot", 
-    8:  "params", 
-    9:  "plain", 
-    10: "snip",
-    11: "synflow",
-    12: "zen"
+    2:  "grad_norm", 
+    3:  "grasp",
+    4:  "l2_norm", 
+    5:  "jacov", 
+    6:  "nwot", 
+    7:  "plain", 
+    8: "snip",
+    9: "synflow",
+    10: "zen"
 }
 
 attack_method = {
@@ -74,6 +72,7 @@ attack_method = {
     2: "val_pgd_3.0_acc",
     3: "val_pgd_8.0_acc",
     4: "autoattack",
+    5: "val_acc"
 }
 
 AVAILABLE_OPERATIONS = [

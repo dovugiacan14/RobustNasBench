@@ -128,15 +128,26 @@ def do_each_gen(type_of_problem, robust_type, **kwargs):
         best_arch_list = []
 
         for arch_X in best_arch_X_list:
-            arch_info = {
-                "X": arch_X,
-                "testing_accuracy": algorithm.problem.get_robustness_metric(
-                    arch_X, robust_type, final=True
-                ),
-                "validation_accuracy": algorithm.problem.get_robustness_metric(
-                    arch_X, robust_type
-                ),
-            }
+            if robust_type == "val_acc":
+                arch_info = {
+                    "X": arch_X,
+                    "testing_accuracy": algorithm.problem.get_accuracy(
+                        arch_X, robust_type, final=True
+                    ),
+                    "validation_accuracy": algorithm.problem.get_accuracy(
+                        arch_X, robust_type
+                    ),
+                }
+            else: 
+                arch_info = {
+                    "X": arch_X,
+                    "testing_accuracy": algorithm.problem.get_robustness_metric(
+                        arch_X, robust_type, final=True
+                    ),
+                    "validation_accuracy": algorithm.problem.get_robustness_metric(
+                        arch_X, robust_type
+                    ),
+                }
             best_arch_list.append(arch_info)
         algorithm.best_arch_history.append(best_arch_list)
         algorithm.nGens_history.append(algorithm.nGens + 1)
@@ -171,28 +182,12 @@ def finalize(type_of_problem, metric, robustness_type, **kwargs):
 
     if type_of_problem == "single-objective":
         gens = algorithm.nGens_history
-        # best_f = np.array(
-        #     [float(v) for v in algorithm.best_arch_history]
-        # )  # ensure float for plotting
         best_f = np.array(
             [gen[0]["validation_accuracy"] for gen in algorithm.best_arch_history]
         )  # ensure float for plotting
 
-        # Compute standard deviation per generation
-        # std_f = compute_std_per_gen(algorithm.pop_history)
-        # std_f = np.array(std_f)
-
         plt.figure(figsize=(10, 6))
         plt.xlim([0, gens[-1] + 2])
-
-        # Fill ±1 std around best_f
-        # plt.fill_between(
-        #     gens,
-        #     best_f - std_f,
-        #     best_f + std_f,
-        #     color="orange",
-        #     alpha=0.3,
-        # )
 
         # Plot line and scatter
         plt.plot(gens, best_f, c="blue", label="Best F")
@@ -204,12 +199,14 @@ def finalize(type_of_problem, metric, robustness_type, **kwargs):
         plt.title(metric)
         # plt.legend(loc="best")
 
-        # Save plot
+        plt.xticks(np.arange(0, gens[-1] + 30, 30))
+
+        # save plot
         plt.tight_layout()
         plt.savefig(f"{save_dir}/best_architecture_each_gen.png")
         plt.clf()
 
-        # Save data
+        # save data
         with open(f"{save_dir}/best_architecture_each_gen.p", "wb") as f:
             pickle.dump([gens, algorithm.best_arch_history], f)
 
