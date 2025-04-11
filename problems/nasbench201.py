@@ -99,7 +99,10 @@ class NASBench201(Problem):
             encode_arch = tuple(map(int, arch))
             decode_arch = decode_architecture(encode_arch)
             robustness_eval_dict = self.robustness_data[decode_arch]
-            score = robustness_eval_dict[robust_type]["threeseed"]
+            if robust_type == "autoattack":
+                score = robustness_eval_dict[robust_type]
+            else: 
+                score = robustness_eval_dict[robust_type]["threeseed"]
             return score
         except Exception as e: 
             raise e 

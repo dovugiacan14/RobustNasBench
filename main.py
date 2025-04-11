@@ -5,7 +5,7 @@ from sys import platform
 from datetime import datetime
 from helpers.utils import create_directory
 from src.factory import get_problem, get_algorithm
-from constant import population_size_dict, zero_cost_metrics
+from constant import population_size_dict, zero_cost_metrics, attack_method
 
 from operators.crossover import PointCrossover
 from operators.mutation import BitStringMutation
@@ -78,7 +78,7 @@ def parse_argument():
         "--metric", type=int, default=1, help="fitness metric", choices=range(0, 11)
     )
     parser.add_argument(
-        "--attack", type=int, default=1, help="type of attack", choices=range(0, 6)
+        "--attack", type=int, default=5, help="type of attack", choices=range(0, 6)
     )
     parser.add_argument("--seed", type=int, default=0, help="random seed")
     parser.add_argument("--debug", type=int, default=0, help="debug mode (0 or 1)")
@@ -88,7 +88,7 @@ def parse_argument():
 
 def main(args):
     # create folder to save result
-    base_results_path = create_directory(args.path_results or root_project, args.problem_name)
+    base_results_path = create_directory(args.path_results or root_project, attack_method[args.attack])
     timestamp = datetime.now().strftime(f"{args.problem_name}_{args.algorithm_name}_{zero_cost_metrics[args.metric]}_%d%m%H%M%S")
     root_path = create_directory(base_results_path, timestamp)
     PATH_DATA = os.path.join(root_project, "data")

@@ -12,7 +12,7 @@ def parse_arguments():
     parser.add_argument(
         "--base_dir",
         type=str,
-        default="results/SO-NAS201-1/SO-NAS201-1_GA_synflow_1104134422",
+        default="results/val_fgsm_3.0_acc/SO-NAS201-1_GA_synflow_1104222020",
     )
     parser.add_argument(
         "--attack", type=int, default=0, help="type of attack", choices=range(0, 6)

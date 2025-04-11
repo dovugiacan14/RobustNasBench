@@ -131,12 +131,8 @@ def do_each_gen(type_of_problem, robust_type, **kwargs):
             if robust_type == "val_acc":
                 arch_info = {
                     "X": arch_X,
-                    "testing_accuracy": algorithm.problem.get_accuracy(
-                        arch_X, robust_type, final=True
-                    ),
-                    "validation_accuracy": algorithm.problem.get_accuracy(
-                        arch_X, robust_type
-                    ),
+                    "testing_accuracy": algorithm.problem.get_accuracy(arch_X, final=True),
+                    "validation_accuracy": algorithm.problem.get_accuracy(arch_X)
                 }
             else: 
                 arch_info = {
