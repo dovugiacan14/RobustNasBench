@@ -7,7 +7,7 @@ import json
 
 # print(data)
 
-file = "config/zc_nasbench201.json"
+file = "config/cifar10.json"
 with open(file, "r") as f:
     conf = json.load(f)
 print(conf)
