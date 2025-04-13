@@ -173,6 +173,7 @@ class Algorithm:
         do_each_gen(
             type_of_problem=self.problem.type_of_problem,
             robust_type= self.problem.robust_type,
+            metric= self.problem.fitness_metric,
             algorithm=self
         )
         if self.debug:

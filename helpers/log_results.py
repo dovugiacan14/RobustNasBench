@@ -109,7 +109,7 @@ def visualize_Elitist_Archive(elitist_archive, objective_0, path_results):
     plt.clf()
 
 
-def do_each_gen(type_of_problem, robust_type, **kwargs):
+def do_each_gen(type_of_problem, robust_type, metric, **kwargs):
     algorithm = kwargs["algorithm"]
     if type_of_problem == "single-objective":
         pop = {
@@ -131,6 +131,7 @@ def do_each_gen(type_of_problem, robust_type, **kwargs):
             if robust_type == "val_acc":
                 arch_info = {
                     "X": arch_X,
+                    "search_metric": algorithm.problem.get_zero_cost_metric(arch_X, metric),
                     "testing_accuracy": algorithm.problem.get_accuracy(arch_X, final=True),
                     "validation_accuracy": algorithm.problem.get_accuracy(arch_X)
                 }

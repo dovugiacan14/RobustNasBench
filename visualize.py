@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from collections import defaultdict
-from constant import attack_method
+from constant import attack_method, zero_cost_metrics
 
 
 def parse_arguments():
@@ -15,13 +15,13 @@ def parse_arguments():
     parser.add_argument(
         "--base_dir",
         type=str,
-        default="results/val_fgsm_3.0_acc/SO-NAS201-1_GA_synflow_1104222020",
+        default="results/val_acc/SO-NAS201-1_GA_synflow_1304145745",
     )
     parser.add_argument(
-        "--attack", type=int, default=0, help="type of attack", choices=range(0, 6)
+        "--metric", type=int, default=9, help="type of attack", choices=range(0, 6)
     )
     parser.add_argument(
-        "--option", type=int, default=3, help="type of attack", choices=range(0, 6)
+        "--option", type=int, default=1, help="type of attack", choices=range(0, 6)
     )
     return parser.parse_args()
 
@@ -58,39 +58,29 @@ def get_optimal_statistics(cfg_path):
 
 def collect_acc_statistics(base_result_dir: str, best_arch_filename: str):
     """
-    Collect mean and std of validation and test accuracy from experiment folders.
+    Collects testing accuracy statistics across multiple experiment folders.
+
+    Each experiment folder is expected to contain a pickled file with validation
+    results. This function loads these files, extracts the testing accuracy per
+    generation, and aggregates them for statistical analysis.
 
     Args:
-        base_result_dir (str): Path to the base result directory.
-        best_arch_filename (str): Filename containing architecture accuracy results.
+        base_result_dir (str): Path to the directory containing experiment subfolders.
+        best_arch_filename (str): Name of the pickle file in each subfolder that 
+                                  stores accuracy results.
 
     Returns:
-        Tuple containing:
-            - val_acc_mean_each_exp (List[float])
-            - val_acc_std_each_exp (List[float])
-            - test_acc_mean_each_exp (List[float])
-            - test_acc_std_each_exp (List[float])
+        dict: A dictionary where each key is 'gen{index}' and the value is a list of 
+              testing accuracies for that generation across all experiments.
     """
     # convert to Path object
     base_result_dir = Path(base_result_dir)
-
-    # initialize output lists
-    val_acc_best_each_exp = []
-    val_acc_mean_each_exp = []
-    val_acc_std_each_exp = []
-
-    test_acc_best_each_exp = []
-    test_acc_mean_each_exp = []
-    test_acc_std_each_exp = []
-
     if not base_result_dir.exists():
         raise FileNotFoundError(f"Base result directory not found: {base_result_dir}")
-
+    
+    stats = defaultdict(list)
     # iterate over each subdirectory
     for subdir_name in os.listdir(base_result_dir):
-        val_acc_each_exp = []
-        test_acc_each_exp = []
-
         subdir_path = base_result_dir / subdir_name
         file_path = subdir_path / best_arch_filename.strip()
 
@@ -100,39 +90,15 @@ def collect_acc_statistics(base_result_dir: str, best_arch_filename: str):
 
         with open(file_path, "rb") as f:
             data = pickle.load(f)
-
+        
         # extract accuracy values
-        nGens_each_run = data[1]
-        for gen in nGens_each_run:
-            val_acc = gen[0]["validation_accuracy"]
-            test_acc = gen[0]["testing_accuracy"]
-            val_acc_each_exp.append(val_acc)
-            test_acc_each_exp.append(test_acc)
-
-        # convert to numpy for stats
-        val_acc_each_exp = np.array(val_acc_each_exp)
-        test_acc_each_exp = np.array(test_acc_each_exp)
-
-        val_acc_best_each_exp.append(np.max(val_acc_each_exp))
-        val_acc_mean_each_exp.append(np.mean(val_acc_each_exp))
-        val_acc_std_each_exp.append(np.std(val_acc_each_exp))
-
-        test_acc_best_each_exp.append(np.max(test_acc_each_exp))
-        test_acc_mean_each_exp.append(np.mean(test_acc_each_exp))
-        test_acc_std_each_exp.append(np.std(test_acc_each_exp))
-
-    return {
-        "max_val": val_acc_best_each_exp,
-        "mean_val": val_acc_mean_each_exp, 
-        "std_val": val_acc_std_each_exp,
-        "max_test": test_acc_best_each_exp, 
-        "mean_test": test_acc_mean_each_exp, 
-        "std_test": test_acc_std_each_exp  
-    }
-
+        for num_gen, gen_val in enumerate(data[1]):
+            key_name = f"gen{num_gen + 0}"
+            stats[key_name].append(gen_val[0]["search_metric"])
+        
+    return dict(stats)
 
 def collect_total_eval_attacking(base_dir: str, best_arch_filename: str): 
-    results = defaultdict(list)
     results = defaultdict(list)
     for attack in os.listdir(base_dir):
         attack_dir = os.path.join(base_dir, attack)
@@ -141,69 +107,48 @@ def collect_total_eval_attacking(base_dir: str, best_arch_filename: str):
             results[attack] = collect_acc_statistics(folder_path, best_arch_filename)
     return results
 
-def visualize_test_accuracy_result(
-    acc_values: list,
-    acc_std: list,
-    attack_name: str,
-    save_dir: str = "figures"
-):
-    """Visualize test accuracy with standard deviation as fill area."""
 
-    # Prepare x-axis as index of runs
-    x = list(range(len(acc_values)))
-
-    # Convert input lists to numpy arrays
-    acc_array = np.array(acc_values)
-    std_array = np.array(acc_std)
+def visualize_nGen_accuracy(stats: dict, metric_name: str, save_dir: str= "figures"): 
+    # format input data 
+    gens = []
+    means = [] 
+    stds = []
+    for gen_key in sorted(stats.keys(), key=lambda x: int(x.replace('gen', ''))):
+        gens.append(int(gen_key.replace('gen', '')))
+        means.append(stats[gen_key]['mean'])
+        stds.append(stats[gen_key]['std'])
+    
+    means = np.array(means)
+    stds = np.array(stds)
 
     # Create the plot
     plt.figure(figsize=(10, 6))
+    plt.plot(gens, means, color="darkorange")
+    plt.fill_between(gens, means - stds, means + stds, color="navajowhite", alpha=0.2)
 
-    # Fill between (accuracy ± std)
-    plt.fill_between(
-        x,
-        acc_array - std_array,
-        acc_array + std_array,
-        color="navajowhite",
-        alpha=0.5,
-        label="Accuracy ± Std"
-    )
+    # Set plot titles and labels
+    plt.title(f"Search by {metric_name}")
+    plt.xlabel('Generation')
+    plt.ylabel('Test Accuracy')
 
-    # Line plot for accuracy
-    plt.plot(
-        x,
-        acc_array,
-        color="darkorange",
-        linewidth=2,
-        label="Test Accuracy"
-    )
+    # Set x-axis ticks with intervals (e.g., every 30 generations)
+    xtick_step = 30
+    max_gen = max(gens)
+    plt.xticks(np.arange(0, max_gen + 1, xtick_step))
 
-    # Scatter plot with square markers
-    plt.scatter(
-        x,
-        acc_array,
-        color="orangered",
-        s=40,
-        marker="s",
-        label="Points"
-    )
-
-    # Axis labels and title
-    plt.xlabel("Run Index")
-    plt.ylabel("Test Accuracy")
-    plt.title(f"{attack_name}")
-
-    # Add legend and grid
+    # Add grid, legend, and layout adjustments
+    # plt.grid(True, linestyle='--', alpha=0.5)
     plt.legend()
-    plt.grid(True, linestyle="--", alpha=0.6)
-
-    # Save the figure
     plt.tight_layout()
+
+    # Create directory if it doesn't exist and save the figure
     os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, f"{attack_name}.png")
-    plt.savefig(save_path)
-    print(f"Plot saved to {save_path}")
-    plt.clf()
+    fig_path = os.path.join(save_dir, f"{metric_name}_accuracy.png")
+    plt.savefig(fig_path, dpi=300)
+
+    # Display the plot
+    plt.show()
+
 
 def visualize_synthetic_data(data_dict, save_dir: str= "figures/"): 
     """visualize multiple test accuracy results with standard deviation as fill area."""
@@ -307,10 +252,17 @@ if __name__ == "__main__":
         statistics = collect_acc_statistics(
             args.base_dir, best_arch_filename
         )
-        visualize_test_accuracy_result(
-            acc_values= statistics["max_test"], 
-            acc_std= statistics["std_test"], 
-            attack_name= attack_method[args.attack], 
+        summray_stats = {}
+        for gen, gen_exp in statistics.items():
+            gen_exp_arr = np.array(gen_exp)
+            summray_stats[gen] = {
+                "mean": np.mean(gen_exp_arr),
+                "std": np.std(gen_exp_arr)
+            }
+        
+        visualize_nGen_accuracy(
+            stats= summray_stats, 
+            metric_name= zero_cost_metrics[args.metric], 
         )
 
     elif args.option == 2: 

@@ -61,8 +61,8 @@ zero_cost_metrics = {
     5:  "jacov", 
     6:  "nwot", 
     7:  "plain", 
-    8: "snip",
-    9: "synflow",
+    8:  "snip",
+    9:  "synflow",
     10: "zen"
 }
 

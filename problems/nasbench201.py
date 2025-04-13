@@ -79,9 +79,9 @@ class NASBench201(Problem):
         """
         key = get_key_in_data(arch)
         if final:
-            acc = self.data["200"][key]["test_acc"]
+            acc = self.data["200"][key]["test_acc"][-1]
         else:
-            acc = self.data["200"][key]["val_acc"]
+            acc = self.data["200"][key]["val_acc"][-1]
         return acc
 
     def _get_zero_cost_metric(self, arch, metric, final=False):
