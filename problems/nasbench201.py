@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
 from problems.NAS_problem import Problem
-from constant import AVAILABLE_OPERATIONS
+from constant import AVAILABLE_OPERATIONS, EDGE_LIST, OP_NAMES_NB201
 
 load_dotenv()
 
@@ -36,6 +36,22 @@ def normalize_data_name(dataset_name):
 def decode_architecture(encoded_architecture: tuple):
     ops = [AVAILABLE_OPERATIONS[idx] for idx in encoded_architecture]
     return "|{}~0|+|{}~0|{}~1|+|{}~0|{}~1|{}~2|".format(*ops)
+
+def convert_str_to_ops(str_encoding):
+    """
+    Converts NB201 string representation to op_indices
+    """
+    nodes = str_encoding.split("+")
+
+    def get_op(x):
+        return x.split("~")[0]
+    node_ops = [list(map(get_op, n.strip()[1:-1].split("|"))) for n in nodes]
+
+    enc = []
+    for u, v in EDGE_LIST:
+        enc.append(OP_NAMES_NB201.index(node_ops[v - 2][u - 1]))
+
+    return str(tuple(map(int, enc)))
 
 
 class NASBench201(Problem):
@@ -88,7 +104,8 @@ class NASBench201(Problem):
         try:
             dataset = normalize_data_name(self.dataset)
             zero_cost_eval_dict = self.zero_cost_data[dataset]
-            encode_arch = str(tuple(map(int, arch)))
+            str_arch = decode_architecture(arch)
+            encode_arch = convert_str_to_ops(str_arch)
             score = zero_cost_eval_dict[encode_arch][metric]["score"]
             return score
         except Exception as e:
