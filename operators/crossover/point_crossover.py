@@ -6,7 +6,7 @@ from helpers.utils import get_hashkey, check_valid
 
 
 def crossover(parent_1, parent_2, typeC, **kwargs):
-    problem_name = kwargs["problem_name"]
+    problem_name = "NASBench201"
     offspring_1, offspring_2 = parent_1.copy(), parent_2.copy()
 
     if typeC == "1X":  # 1-point crossover
@@ -52,7 +52,7 @@ class PointCrossover(Crossover):
             self.method = method
 
     def _do(self, problem, P, **kwargs):
-        problem_name = problem.name
+        problem_name = "NASBench201"
 
         offspring_size = len(P)
         O = Population(offspring_size)
@@ -74,44 +74,43 @@ class PointCrossover(Crossover):
                         P_[i][0].X, P_[i][1].X, self.method, problem_name=problem_name
                     )
                     for j, X in enumerate(o_X):
-                        if problem.isValid(o_X[j]):
-                            o_hashKey = get_hashkey(o_X[j], problem_name)
+                        o_hashKey = get_hashkey(o_X[j])
+                        if (
+                            kwargs["algorithm"].problem.type_of_problem
+                            == "single-objective"
+                        ):
+                            O_hashKey = []
+                            kwargs["algorithm"].E_Archive_search.DS = []
+
+                        if check_valid(
+                            o_hashKey,
+                            O=O_hashKey,
+                            DS=kwargs["algorithm"].E_Archive_search.DS,
+                        ) or (nCrossovers - maxCrossovers > 0):
+                            O_hashKey.append(o_hashKey)
+
                             if (
                                 kwargs["algorithm"].problem.type_of_problem
                                 == "single-objective"
                             ):
-                                O_hashKey = []
-                                kwargs["algorithm"].E_Archive_search.DS = []
+                                o_F = None
+                            else:
+                                o_F = kwargs["algorithm"].evaluate(o_X[j])
+                            O[n].set("X", o_X[j])
+                            O[n].set("hashKey", o_hashKey)
+                            O[n].set("F", o_F)
 
-                            if check_valid(
-                                o_hashKey,
-                                O=O_hashKey,
-                                DS=kwargs["algorithm"].E_Archive_search.DS,
-                            ) or (nCrossovers - maxCrossovers > 0):
-                                O_hashKey.append(o_hashKey)
+                            if (
+                                kwargs["algorithm"].problem.type_of_problem
+                                == "multi-objective"
+                            ):
+                                kwargs["algorithm"].E_Archive_search.update(
+                                    O[n], algorithm=kwargs["algorithm"]
+                                )
 
-                                if (
-                                    kwargs["algorithm"].problem.type_of_problem
-                                    == "single-objective"
-                                ):
-                                    o_F = None
-                                else:
-                                    o_F = kwargs["algorithm"].evaluate(o_X[j])
-                                O[n].set("X", o_X[j])
-                                O[n].set("hashKey", o_hashKey)
-                                O[n].set("F", o_F)
-
-                                if (
-                                    kwargs["algorithm"].problem.type_of_problem
-                                    == "multi-objective"
-                                ):
-                                    kwargs["algorithm"].E_Archive_search.update(
-                                        O[n], algorithm=kwargs["algorithm"]
-                                    )
-
-                                n += 1
-                                if n - offspring_size == 0:
-                                    return O
+                            n += 1
+                            if n - offspring_size == 0:
+                                return O
                 else:
                     for o in P_[i]:
                         if (

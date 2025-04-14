@@ -75,6 +75,7 @@ def get_optimal_statistics(cfg_path):
         "val_pgd_3.0_acc",
         "val_pgd_8.0_acc",
         "autoattack", 
+        "synflow"
     ]
 
     # Use defaultdict to automatically initialize empty lists

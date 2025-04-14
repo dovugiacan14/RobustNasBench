@@ -5,11 +5,12 @@ from sys import platform
 from datetime import datetime
 from helpers.utils import create_directory
 from src.factory import get_problem, get_algorithm
-from constant import population_size_dict, zero_cost_metrics, attack_method
+from constant import population_size_dict, zero_cost_metrics
 
 from operators.crossover import PointCrossover
 from operators.mutation import BitStringMutation
 from operators.sampling.random_sampling import RandomSampling
+from algorithms.GeneticAlgorithm import GeneticAlgorithm
 from operators.selection import TournamentSelection, RankAndCrowdingSurvival
 
 
@@ -52,17 +53,6 @@ def parse_argument():
         choices=["GA", "NSGA-II"],
     )
 
-    # WARM-UP
-    parser.add_argument(
-        "--warm_up", type=int, default=0, help="whether to perform warm-up (0 or 1)"
-    )
-    parser.add_argument(
-        "--nSamples_for_warm_up",
-        type=int,
-        default=0,
-        help="number of samples for warm-up",
-    )
-
     # ENVIRONMENT
     parser.add_argument(
         "--path_results",
@@ -75,7 +65,7 @@ def parse_argument():
         "--n_runs", type=int, default=2, help="number of experiment runs"
     )
     parser.add_argument(
-        "--metric", type=int, default=9, help="fitness metric", choices=range(0, 11)
+        "--metric", type=int, default=9, help="zero-cost metric to search", choices=range(0, 11)
     )
     parser.add_argument(
         "--attack", type=int, default=5, help="type of attack", choices=range(0, 6)
@@ -88,8 +78,8 @@ def parse_argument():
 
 def main(args):
     # create folder to save result
-    base_results_path = create_directory(args.path_results or root_project, attack_method[args.attack])
-    timestamp = datetime.now().strftime(f"{args.problem_name}_{args.algorithm_name}_{zero_cost_metrics[args.metric]}_%d%m%H%M%S")
+    base_results_path = create_directory(args.path_results or root_project, zero_cost_metrics[args.metric])
+    timestamp = datetime.now().strftime(f"{args.problem_name}_{args.algorithm_name}_%d%m%H%M%S")
     root_path = create_directory(base_results_path, timestamp)
     PATH_DATA = os.path.join(root_project, "data")
    
@@ -100,7 +90,7 @@ def main(args):
         robustness= args.attack, 
         path_data=PATH_DATA
     )
-    problem.set_up()
+    problem._set_up()
 
     # initialize statistic
     pop_size = population_size_dict[args.problem_name]
@@ -113,10 +103,11 @@ def main(args):
     mutation = BitStringMutation()
 
     # initialize algorithm and selection method
-    algorithm = get_algorithm(algorithm_name=args.algorithm_name)
-    if algorithm.name == "GA":
+    # algorithm = get_algorithm(algorithm_name=args.algorithm_name)
+    if args.algorithm_name == "GA":
+        algorithm = GeneticAlgorithm()
         survival = TournamentSelection(k=4)
-    elif algorithm == "NSGA-II":
+    elif args.algorithm_name == "NSGA-II":
         survival = RankAndCrowdingSurvival()
     else:
         raise ValueError()
@@ -134,13 +125,13 @@ def main(args):
     # logging and solve problem
     with open(f"{root_path}/logging.txt", "w") as f:
         f.write(f"******* PROBLEM *******\n")
-        f.write(f"- Benchmark: {problem.name}\n")
+        f.write(f"- Benchmark: NasBench201\n")
         f.write(f"- Dataset: {problem.dataset}\n")
         f.write(f"- Maximum number of evaluations: {problem.maxEvals}\n")
         f.write(f"- List of objectives: {problem.objectives_lst}\n\n")
 
         f.write(f"******* ALGORITHM *******\n")
-        f.write(f"- Algorithm: {algorithm.name}\n")
+        f.write(f"- Algorithm: {args.algorithm_name}\n")
         f.write(f"- Population size: {algorithm.pop_size}\n")
         f.write(f"- Crossover method: {algorithm.crossover.method}\n")
         f.write(f"- Mutation method: Bit-string\n")

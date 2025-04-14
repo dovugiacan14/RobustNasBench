@@ -10,7 +10,7 @@ class BitStringMutation(Mutation):
         super().__init__(prob=1)
 
     def _do(self, problem, P, O, **kwargs):
-        problem_name = problem.name
+        problem_name = "NASBench201"
 
         P_hashKey = P.get('hashKey')
         O_old_X = O.get('X')
@@ -45,27 +45,27 @@ class BitStringMutation(Mutation):
                         new_op = np.random.choice(available_ops)
                         o_X[m] = new_op
 
-                if problem.isValid(o_X):
-                    o_hashKey = get_hashkey(o_X, problem_name)
-                    if kwargs['algorithm'].problem.type_of_problem == 'single-objective':
-                        O_new_hashKey = []
-                        P_hashKey = []
-                        kwargs['algorithm'].E_Archive_search.DS = []
+                # if problem.isValid(o_X):
+                o_hashKey = get_hashkey(o_X)
+                if kwargs['algorithm'].problem.type_of_problem == 'single-objective':
+                    O_new_hashKey = []
+                    P_hashKey = []
+                    kwargs['algorithm'].E_Archive_search.DS = []
 
-                    if check_valid(o_hashKey,
-                                   O=O_new_hashKey, P=P_hashKey, DS=kwargs['algorithm'].E_Archive_search.DS) \
-                            or (nMutations - maxMutations > 0):
-                        O_new_hashKey.append(o_hashKey)
+                if check_valid(o_hashKey,
+                                O=O_new_hashKey, P=P_hashKey, DS=kwargs['algorithm'].E_Archive_search.DS) \
+                        or (nMutations - maxMutations > 0):
+                    O_new_hashKey.append(o_hashKey)
 
-                        o_F = kwargs['algorithm'].evaluate(o_X)
-                        O_new[n].set('X', o_X)
-                        O_new[n].set('hashKey', o_hashKey)
-                        O_new[n].set('F', o_F)
+                    o_F = kwargs['algorithm'].evaluate(o_X)
+                    O_new[n].set('X', o_X)
+                    O_new[n].set('hashKey', o_hashKey)
+                    O_new[n].set('F', o_F)
 
-                        if kwargs['algorithm'].problem.type_of_problem == 'multi-objective':
-                            kwargs['algorithm'].E_Archive_search.update(O_new[n], algorithm=kwargs['algorithm'])
+                    if kwargs['algorithm'].problem.type_of_problem == 'multi-objective':
+                        kwargs['algorithm'].E_Archive_search.update(O_new[n], algorithm=kwargs['algorithm'])
 
-                        n += 1
-                        if n - offspring_size == 0:
-                            return O_new
+                    n += 1
+                    if n - offspring_size == 0:
+                        return O_new
             nMutations += 1

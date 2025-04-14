@@ -2,9 +2,6 @@ import os
 import torch 
 import random 
 import numpy as np
-from benchmark_api.nasbench import wrap_api as api
-
-wrap_api = api.NASBench_()
 
 
 def create_directory(base_path: str, sub_path: str):
@@ -27,20 +24,12 @@ def check_valid(hash_key, **kwargs):
     return np.all([hash_key not in kwargs[L] for L in kwargs])
 
 
-def get_hashkey(arch, problem_name):
+def get_hashkey(arch):
     """
     This function is used to get the hash key of architecture. The hash key is used to avoid the existence of duplication in the population.\n
     - *Output*: The hash key of architecture.
     """
-    if problem_name == "NASBench101":
-        edges_matrix, ops_matrix = X2matrices(arch)
-        model_spec = api.ModelSpec(edges_matrix, ops_matrix)
-        hash_key = wrap_api.get_module_hash(model_spec)
-    elif problem_name == "NASBench201":
-        hash_key = "".join(map(str, arch))
-    else:
-        raise ValueError(f"Not supporting this problem - {problem_name}.")
-    return hash_key
+    return "".join(map(str, arch))
 
 
 def X2matrices(X):

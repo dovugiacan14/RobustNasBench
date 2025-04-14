@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 from pathlib import Path
 from dotenv import load_dotenv
-from problems.NAS_problem import Problem
 from constant import AVAILABLE_OPERATIONS, EDGE_LIST, OP_NAMES_NB201
 
 load_dotenv()
@@ -54,8 +53,8 @@ def convert_str_to_ops(str_encoding):
     return str(tuple(map(int, enc)))
 
 
-class NASBench201(Problem):
-    def __init__(self, dataset, maxEvals, fitness_metric, robust_type, **kwargs):
+class NASBench201:
+    def __init__(self, dataset, maxEvals, zc_metric, robust_type, **kwargs):
         """
         # NAS-Benchmark-201 provides us with the information (e.g., the training loss, the testing accuracy,
         the validation accuracy, the number of FLOPs, etc) of all architectures in the search space. Therefore, if we
@@ -67,8 +66,10 @@ class NASBench201(Problem):
         - available_ops -> the available operators can choose in the search space.
         - maxLength -> the maximum length of compact architecture.
         """
-        super().__init__(maxEvals, "NASBench201", dataset, **kwargs)
-
+        self.dataset = dataset 
+        self.maxEvals = maxEvals
+        self.zc_metric = zc_metric
+        self.robust_type = robust_type
         self.type_of_problem = kwargs["type_of_problem"]
         if self.type_of_problem == "single-objective":
             self.objectives_lst = ["val_acc"]
@@ -82,12 +83,11 @@ class NASBench201(Problem):
         self.maxLength = 6
 
         self.path_data = kwargs["path_data"] + "/NASBench201"
-        self.fitness_metric = fitness_metric
         self.robust_type = robust_type
         self.data = None
         self.zero_cost_data = None
         self.robustness_data = None
-        self.best_arch = None
+        self.best_arch = None 
 
     def _get_accuracy(self, arch, final=False):
         """
@@ -186,14 +186,11 @@ class NASBench201(Problem):
 
     def _evaluate(self, arch):
         if self.type_of_problem == "single-objective":
-            if self.fitness_metric == "val_acc":
-                acc = self.get_accuracy(arch)
+            if self.zc_metric == "val_acc":
+                acc = self._get_accuracy(arch)
             else:
-                acc = self.get_zero_cost_metric(arch, self.fitness_metric)
+                acc = self._get_zero_cost_metric(arch, self.zc_metric)
             return acc
         elif self.type_of_problem == "multi-objective":
-            complex_metric = self.get_complexity_metric(arch)
+            complex_metric = self._get_complexity_metric(arch)
             return [complex_metric, 1 - acc]
-
-    def _isValid(self, arch):
-        return True
