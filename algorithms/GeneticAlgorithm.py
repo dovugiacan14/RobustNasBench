@@ -119,7 +119,7 @@ class GeneticAlgorithm:
         self.nEvals +=1 
         return F
 
-    def do_each_gen(self, attack_name, metric): 
+    def do_each_gen(self, metric): 
         pop = {
             "X": self.pop.get("X"), 
             "hashKey": self.pop.get("hashKey"),
@@ -135,31 +135,24 @@ class GeneticAlgorithm:
         best_arch_X_list = np.unique(self.pop.get("X")[idx_best_arch], axis= 0)
         best_arch_list = []
         for arch_X in best_arch_X_list: 
-            if attack_name == "val_acc":
-                arch_info = {
-                    "X": arch_X, 
-                    "search_metric": self.problem._get_zero_cost_metric(arch_X, metric), 
-                    "testing_accuracy": self.problem._get_accuracy(arch_X, final= True),
-                    "validation_accuracy": self.problem._get_accuracy(arch_X)
-                }
-            else: 
-                arch_info = {
-                    "X": arch_X,
-                    "testing_accuracy": self.problem.get_robustness_metric(
-                        arch_X, attack_name, final=True
-                    )
-                }
+            arch_info = {
+                "X": arch_X, 
+                "search_metric": self.problem._get_zero_cost_metric(arch_X, metric), 
+                "robust_acc": self.problem._get_robustness_metric(arch_X), 
+                "test_acc": self.problem._get_accuracy(arch_X, final= True), 
+                "val_acc": self.problem._get_accuracy(arch_X)
+            }
             best_arch_list.append(arch_info)
         self.best_arch_history.append(best_arch_list)
         self.nGens_history.append(self.nGens + 1) 
     
-    def finalize(self, attack_name, metric): 
+    def finalize(self, metric): 
         try: 
             save_dir = self.path_results 
 
             # summary and save result 
             gens = self.nGens_history
-            best_f = np.array([gen[0]["validation_accuracy"] for gen in self.best_arch_history])
+            best_f = np.array([gen[0]["val_acc"] for gen in self.best_arch_history])
 
             # plot 
             plt.figure(figsize=(10, 6))
@@ -171,7 +164,7 @@ class GeneticAlgorithm:
 
             # label, legend, title 
             plt.xlabel("#Gens")
-            plt.ylabel(attack_name)
+            plt.ylabel("attack_name")
             plt.title(metric)
 
             plt.xticks(np.arange(0, gens[-1] + 30, 30))
@@ -189,22 +182,16 @@ class GeneticAlgorithm:
                 pickle.dump([gens, self.pop_history], f)
 
         except Exception: 
-            raise ValueError(f"Not supported {attack_name} problem")
+            raise ValueError(f"Not supported attack_name problem")
 
     
     def solve(self, problem, seed): 
         self.set_up(problem, seed)
         self._initialize()
-        self.do_each_gen(
-            attack_name= self.problem.robust_type, 
-            metric= self.problem.zc_metric
-        )
+        self.do_each_gen(metric= self.problem.zc_metric)
         while self.nEvals < self.problem.maxEvals: 
             self.nGens += 1 
             self.next(self.pop)
-            self.do_each_gen(
-                attack_name= self.problem.robust_type, 
-                metric= self.problem.zc_metric
-            )
+            self.do_each_gen(metric= self.problem.zc_metric)
 
-        self.finalize(attack_name= self.problem.robust_type, metric= self.problem.zc_metric)
+        self.finalize(metric= self.problem.zc_metric)

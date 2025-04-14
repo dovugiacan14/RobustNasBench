@@ -109,170 +109,170 @@ def visualize_Elitist_Archive(elitist_archive, objective_0, path_results):
     plt.clf()
 
 
-def do_each_gen(type_of_problem, robust_type, metric, **kwargs):
-    algorithm = kwargs["algorithm"]
-    if type_of_problem == "single-objective":
-        pop = {
-            "X": algorithm.pop.get("X"),
-            "hashKey": algorithm.pop.get("hashKey"),
-            "F": algorithm.pop.get("F"),
-        }
-        algorithm.pop_history.append(pop)
+# def do_each_gen(type_of_problem, robust_type, metric, **kwargs):
+#     algorithm = kwargs["algorithm"]
+#     if type_of_problem == "single-objective":
+#         pop = {
+#             "X": algorithm.pop.get("X"),
+#             "hashKey": algorithm.pop.get("hashKey"),
+#             "F": algorithm.pop.get("F"),
+#         }
+#         algorithm.pop_history.append(pop)
 
-        F = algorithm.pop.get("F")
-        best_arch_F = np.max(F)
-        algorithm.best_F_history.append(best_arch_F)
+#         F = algorithm.pop.get("F")
+#         best_arch_F = np.max(F)
+#         algorithm.best_F_history.append(best_arch_F)
 
-        idx_best_arch = F == best_arch_F
-        best_arch_X_list = np.unique(algorithm.pop.get("X")[idx_best_arch], axis=0)
-        best_arch_list = []
+#         idx_best_arch = F == best_arch_F
+#         best_arch_X_list = np.unique(algorithm.pop.get("X")[idx_best_arch], axis=0)
+#         best_arch_list = []
 
-        for arch_X in best_arch_X_list:
-            if robust_type == "val_acc":
-                arch_info = {
-                    "X": arch_X,
-                    "search_metric": algorithm.problem.get_zero_cost_metric(arch_X, metric),
-                    "testing_accuracy": algorithm.problem.get_accuracy(arch_X, final=True),
-                    "validation_accuracy": algorithm.problem.get_accuracy(arch_X)
-                }
-            else: 
-                arch_info = {
-                    "X": arch_X,
-                    "testing_accuracy": algorithm.problem.get_robustness_metric(
-                        arch_X, robust_type, final=True
-                    ),
-                    "validation_accuracy": algorithm.problem.get_robustness_metric(
-                        arch_X, robust_type
-                    ),
-                }
-            best_arch_list.append(arch_info)
-        algorithm.best_arch_history.append(best_arch_list)
-        algorithm.nGens_history.append(algorithm.nGens + 1)
+#         for arch_X in best_arch_X_list:
+#             if robust_type == "val_acc":
+#                 arch_info = {
+#                     "X": arch_X,
+#                     "search_metric": algorithm.problem.get_zero_cost_metric(arch_X, metric),
+#                     "testing_accuracy": algorithm.problem.get_accuracy(arch_X, final=True),
+#                     "validation_accuracy": algorithm.problem.get_accuracy(arch_X)
+#                 }
+#             else: 
+#                 arch_info = {
+#                     "X": arch_X,
+#                     "testing_accuracy": algorithm.problem.get_robustness_metric(
+#                         arch_X, robust_type, final=True
+#                     ),
+#                     "validation_accuracy": algorithm.problem.get_robustness_metric(
+#                         arch_X, robust_type
+#                     ),
+#                 }
+#             best_arch_list.append(arch_info)
+#         algorithm.best_arch_history.append(best_arch_list)
+#         algorithm.nGens_history.append(algorithm.nGens + 1)
 
-    elif type_of_problem == "multi-objective":
-        non_dominated_front = np.array(algorithm.E_Archive_search.F)
-        non_dominated_front = np.unique(non_dominated_front, axis=0)
+#     elif type_of_problem == "multi-objective":
+#         non_dominated_front = np.array(algorithm.E_Archive_search.F)
+#         non_dominated_front = np.unique(non_dominated_front, axis=0)
 
-        # Update reference point (use for calculating the Hypervolume value)
-        algorithm.reference_point_search[0] = max(
-            algorithm.reference_point_search[0], max(non_dominated_front[:, 0])
-        )
-        algorithm.reference_point_search[1] = max(
-            algorithm.reference_point_search[1], max(non_dominated_front[:, 1])
-        )
+#         # Update reference point (use for calculating the Hypervolume value)
+#         algorithm.reference_point_search[0] = max(
+#             algorithm.reference_point_search[0], max(non_dominated_front[:, 0])
+#         )
+#         algorithm.reference_point_search[1] = max(
+#             algorithm.reference_point_search[1], max(non_dominated_front[:, 1])
+#         )
 
-        IGD_value_search = calculate_IGD_value(
-            pareto_front=algorithm.problem.pareto_front_validation,
-            non_dominated_front=non_dominated_front,
-        )
+#         IGD_value_search = calculate_IGD_value(
+#             pareto_front=algorithm.problem.pareto_front_validation,
+#             non_dominated_front=non_dominated_front,
+#         )
 
-        algorithm.nEvals_history_each_gen.append(algorithm.nEvals)
-        algorithm.IGD_history_each_gen.append(IGD_value_search)
+#         algorithm.nEvals_history_each_gen.append(algorithm.nEvals)
+#         algorithm.IGD_history_each_gen.append(IGD_value_search)
 
-    else:
-        raise ValueError(f"Not supported {type_of_problem} problem")
+#     else:
+#         raise ValueError(f"Not supported {type_of_problem} problem")
 
 
-def finalize(type_of_problem, metric, robustness_type, **kwargs):
-    algorithm = kwargs["algorithm"]
-    save_dir = algorithm.path_results
+# def finalize(type_of_problem, metric, robustness_type, **kwargs):
+#     algorithm = kwargs["algorithm"]
+#     save_dir = algorithm.path_results
 
-    if type_of_problem == "single-objective":
-        gens = algorithm.nGens_history
-        best_f = np.array(
-            [gen[0]["validation_accuracy"] for gen in algorithm.best_arch_history]
-        )  # ensure float for plotting
+#     if type_of_problem == "single-objective":
+#         gens = algorithm.nGens_history
+#         best_f = np.array(
+#             [gen[0]["validation_accuracy"] for gen in algorithm.best_arch_history]
+#         )  # ensure float for plotting
 
-        plt.figure(figsize=(10, 6))
-        plt.xlim([0, gens[-1] + 2])
+#         plt.figure(figsize=(10, 6))
+#         plt.xlim([0, gens[-1] + 2])
 
-        # Plot line and scatter
-        plt.plot(gens, best_f, c="blue", label="Best F")
-        plt.scatter(gens, best_f, c="black", s=12, label="Best Architecture")
+#         # Plot line and scatter
+#         plt.plot(gens, best_f, c="blue", label="Best F")
+#         plt.scatter(gens, best_f, c="black", s=12, label="Best Architecture")
 
-        # Label, legend, title
-        plt.xlabel("#Gens")
-        plt.ylabel(robustness_type)
-        plt.title(metric)
-        # plt.legend(loc="best")
+#         # Label, legend, title
+#         plt.xlabel("#Gens")
+#         plt.ylabel(robustness_type)
+#         plt.title(metric)
+#         # plt.legend(loc="best")
 
-        plt.xticks(np.arange(0, gens[-1] + 30, 30))
+#         plt.xticks(np.arange(0, gens[-1] + 30, 30))
 
-        # save plot
-        plt.tight_layout()
-        plt.savefig(f"{save_dir}/best_architecture_each_gen.png")
-        plt.clf()
+#         # save plot
+#         plt.tight_layout()
+#         plt.savefig(f"{save_dir}/best_architecture_each_gen.png")
+#         plt.clf()
 
-        # save data
-        with open(f"{save_dir}/best_architecture_each_gen.p", "wb") as f:
-            pickle.dump([gens, algorithm.best_arch_history], f)
+#         # save data
+#         with open(f"{save_dir}/best_architecture_each_gen.p", "wb") as f:
+#             pickle.dump([gens, algorithm.best_arch_history], f)
 
-        with open(f"{save_dir}/population_each_gen.p", "wb") as f:
-            pickle.dump([gens, algorithm.pop_history], f)
+#         with open(f"{save_dir}/population_each_gen.p", "wb") as f:
+#             pickle.dump([gens, algorithm.pop_history], f)
 
-    elif type_of_problem == "multi-objective":
-        pickle.dump(
-            [algorithm.nEvals_history, algorithm.IGD_history_search],
-            open(f"{algorithm.path_results}/#Evals_and_IGD_search.p", "wb"),
-        )
-        pickle.dump(
-            [algorithm.nEvals_history, algorithm.IGD_history_evaluate],
-            open(f"{algorithm.path_results}/#Evals_and_IGD_evaluate.p", "wb"),
-        )
-        pickle.dump(
-            [algorithm.nEvals_history, algorithm.E_Archive_history_search],
-            open(f"{algorithm.path_results}/#Evals_and_Elitist_Archive_search.p", "wb"),
-        )
-        pickle.dump(
-            [algorithm.nEvals_history, algorithm.E_Archive_history_evaluate],
-            open(
-                f"{algorithm.path_results}/#Evals_and_Elitist_Archive_evaluate.p", "wb"
-            ),
-        )
-        pickle.dump(
-            [algorithm.nEvals_history_each_gen, algorithm.IGD_history_each_gen],
-            open(f"{algorithm.path_results}/#Evals_and_IGD_each_gen.p", "wb"),
-        )
+#     elif type_of_problem == "multi-objective":
+#         pickle.dump(
+#             [algorithm.nEvals_history, algorithm.IGD_history_search],
+#             open(f"{algorithm.path_results}/#Evals_and_IGD_search.p", "wb"),
+#         )
+#         pickle.dump(
+#             [algorithm.nEvals_history, algorithm.IGD_history_evaluate],
+#             open(f"{algorithm.path_results}/#Evals_and_IGD_evaluate.p", "wb"),
+#         )
+#         pickle.dump(
+#             [algorithm.nEvals_history, algorithm.E_Archive_history_search],
+#             open(f"{algorithm.path_results}/#Evals_and_Elitist_Archive_search.p", "wb"),
+#         )
+#         pickle.dump(
+#             [algorithm.nEvals_history, algorithm.E_Archive_history_evaluate],
+#             open(
+#                 f"{algorithm.path_results}/#Evals_and_Elitist_Archive_evaluate.p", "wb"
+#             ),
+#         )
+#         pickle.dump(
+#             [algorithm.nEvals_history_each_gen, algorithm.IGD_history_each_gen],
+#             open(f"{algorithm.path_results}/#Evals_and_IGD_each_gen.p", "wb"),
+#         )
 
-        save_reference_point(
-            reference_point=algorithm.reference_point_search,
-            path_results=algorithm.path_results,
-            error="search",
-        )
-        save_reference_point(
-            reference_point=algorithm.reference_point_evaluate,
-            path_results=algorithm.path_results,
-            error="evaluate",
-        )
+#         save_reference_point(
+#             reference_point=algorithm.reference_point_search,
+#             path_results=algorithm.path_results,
+#             error="search",
+#         )
+#         save_reference_point(
+#             reference_point=algorithm.reference_point_evaluate,
+#             path_results=algorithm.path_results,
+#             error="evaluate",
+#         )
 
-        visualize_Elitist_Archive_and_Pareto_Front(
-            elitist_archive=algorithm.E_Archive_search.F,
-            pareto_front=algorithm.problem.pareto_front_validation,
-            objective_0=algorithm.problem.objectives_lst[0],
-            path_results=algorithm.path_results,
-            error="search",
-        )
+#         visualize_Elitist_Archive_and_Pareto_Front(
+#             elitist_archive=algorithm.E_Archive_search.F,
+#             pareto_front=algorithm.problem.pareto_front_validation,
+#             objective_0=algorithm.problem.objectives_lst[0],
+#             path_results=algorithm.path_results,
+#             error="search",
+#         )
 
-        visualize_Elitist_Archive_and_Pareto_Front(
-            elitist_archive=algorithm.E_Archive_history_evaluate[-1][-1],
-            pareto_front=algorithm.problem.pareto_front_testing,
-            objective_0=algorithm.problem.objectives_lst[0],
-            path_results=algorithm.path_results,
-            error="evaluate",
-        )
+#         visualize_Elitist_Archive_and_Pareto_Front(
+#             elitist_archive=algorithm.E_Archive_history_evaluate[-1][-1],
+#             pareto_front=algorithm.problem.pareto_front_testing,
+#             objective_0=algorithm.problem.objectives_lst[0],
+#             path_results=algorithm.path_results,
+#             error="evaluate",
+#         )
 
-        visualize_IGD_value_and_nEvals(
-            IGD_history=algorithm.IGD_history_search,
-            nEvals_history=algorithm.nEvals_history,
-            path_results=algorithm.path_results,
-            error="search",
-        )
+#         visualize_IGD_value_and_nEvals(
+#             IGD_history=algorithm.IGD_history_search,
+#             nEvals_history=algorithm.nEvals_history,
+#             path_results=algorithm.path_results,
+#             error="search",
+#         )
 
-        visualize_IGD_value_and_nEvals(
-            IGD_history=algorithm.IGD_history_evaluate,
-            nEvals_history=algorithm.nEvals_history,
-            path_results=algorithm.path_results,
-            error="evaluate",
-        )
-    else:
-        raise ValueError(f"Not supported {type_of_problem} problem")
+#         visualize_IGD_value_and_nEvals(
+#             IGD_history=algorithm.IGD_history_evaluate,
+#             nEvals_history=algorithm.nEvals_history,
+#             path_results=algorithm.path_results,
+#             error="evaluate",
+#         )
+#     else:
+#         raise ValueError(f"Not supported {type_of_problem} problem")

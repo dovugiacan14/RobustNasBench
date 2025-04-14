@@ -54,7 +54,7 @@ def convert_str_to_ops(str_encoding):
 
 
 class NASBench201:
-    def __init__(self, dataset, maxEvals, zc_metric, robust_type, **kwargs):
+    def __init__(self, dataset, maxEvals, zc_metric, **kwargs):
         """
         # NAS-Benchmark-201 provides us with the information (e.g., the training loss, the testing accuracy,
         the validation accuracy, the number of FLOPs, etc) of all architectures in the search space. Therefore, if we
@@ -69,7 +69,6 @@ class NASBench201:
         self.dataset = dataset 
         self.maxEvals = maxEvals
         self.zc_metric = zc_metric
-        self.robust_type = robust_type
         self.type_of_problem = kwargs["type_of_problem"]
         if self.type_of_problem == "single-objective":
             self.objectives_lst = ["val_acc"]
@@ -83,7 +82,6 @@ class NASBench201:
         self.maxLength = 6
 
         self.path_data = kwargs["path_data"] + "/NASBench201"
-        self.robust_type = robust_type
         self.data = None
         self.zero_cost_data = None
         self.robustness_data = None
@@ -111,16 +109,19 @@ class NASBench201:
         except Exception as e:
             raise e
 
-    def _get_robustness_metric(self, arch, robust_type, final=False):
+    def _get_robustness_metric(self, arch):
         try: 
+            summary_score = {}
             encode_arch = tuple(map(int, arch))
             decode_arch = decode_architecture(encode_arch)
             robustness_eval_dict = self.robustness_data[decode_arch]
-            if robust_type == "autoattack":
-                score = robustness_eval_dict[robust_type]
-            else: 
-                score = robustness_eval_dict[robust_type]["threeseed"]
-            return score
+            summary_score["rob_val_acc"] = robustness_eval_dict["val_acc"]["threeseed"]
+            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"]["threeseed"]
+            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"]["threeseed"]
+            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"]["threeseed"]
+            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"]["threeseed"]
+            summary_score["autoattack"] = robustness_eval_dict["autoattack"]
+            return summary_score
         except Exception as e: 
             raise e 
 

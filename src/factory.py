@@ -4,16 +4,14 @@ from problems.nasbench201 import NASBench201
 from constant import problem_configuration, zero_cost_metrics, attack_method 
 
 
-def get_problem(problem_name, metric, robustness, **kwargs):
+def get_problem(problem_name, metric, **kwargs):
     try: 
         config = problem_configuration[problem_name]
         zc_metric = zero_cost_metrics[metric]
-        robustness_type = attack_method[robustness]
         return NASBench201(
             maxEvals=config['maxEvals'], 
             dataset=config['dataset'], 
             zc_metric= zc_metric, 
-            robust_type= robustness_type,
             type_of_problem=config['type_of_problem'], 
             **kwargs
         )

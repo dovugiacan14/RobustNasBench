@@ -67,9 +67,9 @@ def parse_argument():
     parser.add_argument(
         "--metric", type=int, default=9, help="zero-cost metric to search", choices=range(0, 11)
     )
-    parser.add_argument(
-        "--attack", type=int, default=5, help="type of attack", choices=range(0, 6)
-    )
+    # parser.add_argument(
+    #     "--attack", type=int, default=5, help="type of attack", choices=range(0, 6)
+    # )
     parser.add_argument("--seed", type=int, default=0, help="random seed")
     parser.add_argument("--debug", type=int, default=0, help="debug mode (0 or 1)")
 
@@ -87,7 +87,6 @@ def main(args):
     problem = get_problem(
         problem_name=args.problem_name, 
         metric=args.metric, 
-        robustness= args.attack, 
         path_data=PATH_DATA
     )
     problem._set_up()
@@ -103,7 +102,6 @@ def main(args):
     mutation = BitStringMutation()
 
     # initialize algorithm and selection method
-    # algorithm = get_algorithm(algorithm_name=args.algorithm_name)
     if args.algorithm_name == "GA":
         algorithm = GeneticAlgorithm()
         survival = TournamentSelection(k=4)

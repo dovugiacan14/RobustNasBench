@@ -4,7 +4,7 @@ Inspired: https://github.com/msu-coinlab/pymoo
 import numpy as np
 from src.population import Population
 from helpers.elastic_archive import ElitistArchive
-from helpers.log_results import do_each_gen, finalize
+# from helpers.log_results import do_each_gen, finalize
 from helpers.utils import get_hashkey, set_seed, calculate_IGD_value
 
 
@@ -170,16 +170,16 @@ class Algorithm:
         Operations which the algorithm perform at the end of each generation.
         """
         self._do_each_gen()
-        do_each_gen(
-            type_of_problem=self.problem.type_of_problem,
-            robust_type= self.problem.robust_type,
-            metric= self.problem.fitness_metric,
-            algorithm=self
-        )
-        if self.debug:
-            print(f'{self.nEvals}/{self.problem.maxEvals}')
-            print(f'{self.IGD_history_each_gen[-1]}')
-            print('='*40)
+        # do_each_gen(
+        #     type_of_problem=self.problem.type_of_problem,
+        #     robust_type= self.problem.robust_type,
+        #     metric= self.problem.fitness_metric,
+        #     algorithm=self
+        # )
+        # if self.debug:
+        #     print(f'{self.nEvals}/{self.problem.maxEvals}')
+        #     print(f'{self.IGD_history_each_gen[-1]}')
+        #     print('='*40)
 
     """ -------------------------------- Do each having change in EA -------------------------------- """
     def log_elitist_archive(self):  # For solving MONAS problems
@@ -223,14 +223,14 @@ class Algorithm:
         self.E_Archive_evaluate = ElitistArchive(log_each_change=False)
 
     """ -------------------------------- Finalize -------------------------------- """
-    def finalize(self):
-        self._finalize()
-        finalize(
-            type_of_problem=self.problem.type_of_problem, 
-            metric = self.problem.fitness_metric,
-            robustness_type= self.problem.robust_type, 
-            algorithm=self
-        )
+    # def finalize(self):
+    #     self._finalize()
+    #     finalize(
+    #         type_of_problem=self.problem.type_of_problem, 
+    #         metric = self.problem.fitness_metric,
+    #         robustness_type= self.problem.robust_type, 
+    #         algorithm=self
+    #     )
 
     """ -------------------------------------------- Abstract Methods -----------------------------------------------"""
     def _solve(self):
