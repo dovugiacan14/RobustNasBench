@@ -133,8 +133,11 @@ def get_optimal_statistics(cfg_path):
 
 if __name__ == "__main__":
     base_path = "results/"
-    for path in os.listdir(base_path):
-        logger.info(f"******************{path}*********************")
-        base_dir = os.path.join(base_path, path)
-        best_arch_filename = "best_architecture_each_gen.p"
-        collect_total_eval_attacking(base_dir, best_arch_filename)
+    cfg_path = "config/cifar100.json"
+    # for path in os.listdir(base_path):
+    #     logger.info(f"******************{path}*********************")
+    #     base_dir = os.path.join(base_path, path)
+    #     best_arch_filename = "best_architecture_each_gen.p"
+    #     collect_total_eval_attacking(base_dir, best_arch_filename)
+
+    optimal_stats = get_optimal_statistics(cfg_path)

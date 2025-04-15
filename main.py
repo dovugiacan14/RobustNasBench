@@ -30,7 +30,7 @@ def parse_argument():
         "--problem_name",
         "-problem",
         type=str,
-        default="SO-NAS201-1",
+        default="SO-NAS201-2",
         help="the problem name",
         choices=[
             "SO-NAS101",
