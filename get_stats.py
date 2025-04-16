@@ -2,6 +2,7 @@ import os
 import json
 import pickle
 import numpy as np
+import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 
@@ -90,16 +91,34 @@ def collect_acc_statistics(base_result_dir: str, best_arch_filename: str):
 
 
 def collect_total_eval_attacking(base_dir: str, best_arch_filename: str):
+    all_metrics = {}
+
     for sub_dir_name in os.listdir(base_dir):
         sub_dir = os.path.join(base_dir, sub_dir_name)
         stats = collect_acc_statistics(sub_dir, best_arch_filename)
 
     for type_metric, stat in stats.items():
-        logger.info(f"================{type_metric}==============")
         last_gen_eval = stat["gen149"]
         last_gen_eval = np.array(last_gen_eval)
-        logger.info(f"Mean: {np.mean(last_gen_eval)}")
-        logger.info(f"Std: {np.std(last_gen_eval)}")
+        mean = np.mean(last_gen_eval) * 100.00
+        std = np.std(last_gen_eval)
+        formatted = f"{mean:.2f} ± {std:.4f}"
+        all_metrics[type_metric] = formatted
+
+    return all_metrics
+
+
+def export_all_eval_results(base_path: str, output_excel_path: str = "output.xlsx"):
+    best_arch_filename = "best_architecture_each_gen.p"
+
+    with pd.ExcelWriter(output_excel_path, engine='openpyxl', mode='w') as writer:
+        for path in os.listdir(base_path):
+            print(f"******************{path}*********************")
+            base_dir = os.path.join(base_path, path)
+            all_metrics = collect_total_eval_attacking(base_dir, best_arch_filename)
+
+            df_result = pd.DataFrame([all_metrics])
+            df_result.to_excel(writer, sheet_name=path, index=False)
 
 
 def get_optimal_statistics(cfg_path):
@@ -130,14 +149,23 @@ def get_optimal_statistics(cfg_path):
     optimal_stats = {key: max(values) for key, values in stats_dict.items()}
     return optimal_stats
 
+def get_optimal_acc_stats(p_path): 
+    with open(p_path, "rb") as p: 
+        data = pickle.load(p)
+    
+    stats = data["200"]
+    test_acc_lst = []
+    for _, val in stats.items():
+        test_acc = val["test_acc"][-1]
+        test_acc_lst.append(test_acc)
+    return np.max(test_acc_lst) 
+
 
 if __name__ == "__main__":
     base_path = "results/"
-    cfg_path = "config/cifar100.json"
-    # for path in os.listdir(base_path):
-    #     logger.info(f"******************{path}*********************")
-    #     base_dir = os.path.join(base_path, path)
-    #     best_arch_filename = "best_architecture_each_gen.p"
-    #     collect_total_eval_attacking(base_dir, best_arch_filename)
+    cfg_path = "config/imagenet.json"
+    nasbench_path = "data/NASBench201/[ImageNet16-120]_data.p"
 
-    optimal_stats = get_optimal_statistics(cfg_path)
+    export_all_eval_results(base_path)
+    # optimal_stats = get_optimal_statistics(cfg_path)
+    # optimal_stats = get_optimal_acc_stats(nasbench_path)
