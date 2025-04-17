@@ -36,6 +36,7 @@ def decode_architecture(encoded_architecture: tuple):
     ops = [AVAILABLE_OPERATIONS[idx] for idx in encoded_architecture]
     return "|{}~0|+|{}~0|{}~1|+|{}~0|{}~1|{}~2|".format(*ops)
 
+
 def convert_str_to_ops(str_encoding):
     """
     Converts NB201 string representation to op_indices
@@ -44,6 +45,7 @@ def convert_str_to_ops(str_encoding):
 
     def get_op(x):
         return x.split("~")[0]
+
     node_ops = [list(map(get_op, n.strip()[1:-1].split("|"))) for n in nodes]
 
     enc = []
@@ -66,7 +68,7 @@ class NASBench201:
         - available_ops -> the available operators can choose in the search space.
         - maxLength -> the maximum length of compact architecture.
         """
-        self.dataset = dataset 
+        self.dataset = dataset
         self.maxEvals = maxEvals
         self.zc_metric = zc_metric
         self.type_of_problem = kwargs["type_of_problem"]
@@ -85,7 +87,7 @@ class NASBench201:
         self.data = None
         self.zero_cost_data = None
         self.robustness_data = None
-        self.best_arch = None 
+        self.best_arch = None
 
     def _get_accuracy(self, arch, final=False):
         """
@@ -110,20 +112,28 @@ class NASBench201:
             raise e
 
     def _get_robustness_metric(self, arch):
-        try: 
+        try:
             summary_score = {}
             encode_arch = tuple(map(int, arch))
             decode_arch = decode_architecture(encode_arch)
             robustness_eval_dict = self.robustness_data[decode_arch]
             summary_score["rob_val_acc"] = robustness_eval_dict["val_acc"]["threeseed"]
-            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"]["threeseed"]
-            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"]["threeseed"]
-            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"]["threeseed"]
-            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"]["threeseed"]
+            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"][
+                "threeseed"
+            ]
             summary_score["autoattack"] = robustness_eval_dict["autoattack"]
             return summary_score
-        except Exception as e: 
-            raise e 
+        except Exception as e:
+            raise e
 
     def _get_complexity_metric(self, arch):
         """
@@ -186,12 +196,22 @@ class NASBench201:
         return np.random.choice(self.available_ops, self.maxLength)
 
     def _evaluate(self, arch):
+        acc = (
+            self._get_accuracy(arch)
+            if self.zc_metric == "val_acc"
+            else self._get_zero_cost_metric(arch, self.zc_metric)
+        )
         if self.type_of_problem == "single-objective":
-            if self.zc_metric == "val_acc":
-                acc = self._get_accuracy(arch)
-            else:
-                acc = self._get_zero_cost_metric(arch, self.zc_metric)
             return acc
-        elif self.type_of_problem == "multi-objective":
-            complex_metric = self._get_complexity_metric(arch)
-            return [complex_metric, 1 - acc]
+        return [self._get_complexity_metric(arch), 1 - acc]
+
+        # if self.zc_metric == "val_acc":
+        #     acc = self._get_accuracy(arch)
+        # else:
+        #     acc = self._get_zero_cost_metric(arch, self.zc_metric)
+
+        # if self.type_of_problem == "single-objective":
+        #     return acc
+        # elif self.type_of_problem == "multi-objective":
+        #     complex_metric = self._get_complexity_metric(arch)
+        #     return [complex_metric, 1 - acc]

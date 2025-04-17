@@ -1,7 +1,7 @@
 from algorithms import NSGAII 
 from algorithms import GeneticAlgorithm 
 from problems.nasbench201 import NASBench201
-from constant import problem_configuration, zero_cost_metrics, attack_method 
+from constant import problem_configuration, zero_cost_metrics 
 
 
 def get_problem(problem_name, metric, **kwargs):

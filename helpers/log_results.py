@@ -4,20 +4,20 @@ import matplotlib.pyplot as plt
 from .utils import calculate_IGD_value
 
 
-def compute_std_per_gen(pop_history):
-    std_history = []
-    for pop in pop_history:
-        # Assume 'F' contains fitness values
-        if isinstance(pop, dict) and "F" in pop:
-            fitnesses = pop["F"]
-        else:
-            # fallback in case pop is a list of numbers
-            fitnesses = pop
+# def compute_std_per_gen(pop_history):
+#     std_history = []
+#     for pop in pop_history:
+#         # Assume 'F' contains fitness values
+#         if isinstance(pop, dict) and "F" in pop:
+#             fitnesses = pop["F"]
+#         else:
+#             # fallback in case pop is a list of numbers
+#             fitnesses = pop
 
-        std = np.std(fitnesses)
-        std_history.append(std)
+#         std = np.std(fitnesses)
+#         std_history.append(std)
 
-    return std_history
+#     return std_history
 
 
 def save_reference_point(reference_point, path_results, error="None"):

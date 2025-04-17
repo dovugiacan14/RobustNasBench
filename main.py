@@ -11,6 +11,7 @@ from operators.crossover import PointCrossover
 from operators.mutation import BitStringMutation
 from operators.sampling.random_sampling import RandomSampling
 from algorithms.GeneticAlgorithm import GeneticAlgorithm
+from algorithms.NSGAII import NSGAII
 from operators.selection import TournamentSelection, RankAndCrowdingSurvival
 
 
@@ -30,7 +31,7 @@ def parse_argument():
         "--problem_name",
         "-problem",
         type=str,
-        default="SO-NAS201-2",
+        default="MO-NAS201-1",
         help="the problem name",
         choices=[
             "SO-NAS101",
@@ -48,7 +49,7 @@ def parse_argument():
     parser.add_argument(
         "--algorithm_name",
         type=str,
-        default="GA",
+        default="NSGA-II",
         help="the algorithm name",
         choices=["GA", "NSGA-II"],
     )
@@ -106,6 +107,7 @@ def main(args):
         algorithm = GeneticAlgorithm()
         survival = TournamentSelection(k=4)
     elif args.algorithm_name == "NSGA-II":
+        algorithm = NSGAII()
         survival = RankAndCrowdingSurvival()
     else:
         raise ValueError()

@@ -5,10 +5,11 @@ class ElitistArchive:
     """
         Note: No limited the size
     """
-    def __init__(self, log_each_change=True):
+    def __init__(self, algorithm= None, log_each_change=True):
         self.X, self.hashKey, self.F = [], [], []
         self.DS = set()
         self.size = np.inf
+        self.algorithm = algorithm
         self.log_each_change = log_each_change
 
     def update(self, idv, **kwargs):
@@ -40,4 +41,5 @@ class ElitistArchive:
         self.F = np.array(self.F)[r == 0].tolist()
 
         if status and self.log_each_change:
-            kwargs['algorithm'].log_elitist_archive()
+            self.algorithm.log_elitist_archive()
+            # kwargs['algorithm'].log_elitist_archive()
