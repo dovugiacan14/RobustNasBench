@@ -1,13 +1,13 @@
 from algorithms import NSGAII 
 from algorithms import GeneticAlgorithm 
 from problems.nasbench201 import NASBench201
-from constant import problem_configuration, zero_cost_metrics 
+from constant import problem_configuration, search_metrics 
 
 
 def get_problem(problem_name, metric, **kwargs):
     try: 
         config = problem_configuration[problem_name]
-        zc_metric = zero_cost_metrics[metric]
+        zc_metric = search_metrics[metric]
         return NASBench201(
             maxEvals=config['maxEvals'], 
             dataset=config['dataset'], 

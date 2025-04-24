@@ -134,6 +134,8 @@ class GeneticAlgorithm:
         idx_best_arch = F == best_arch_F
         best_arch_X_list = np.unique(self.pop.get("X")[idx_best_arch], axis= 0)
         best_arch_list = []
+        if metric == "val_acc_clean": 
+            metric = "val_accuracy"
         for arch_X in best_arch_X_list: 
             arch_info = {
                 "X": arch_X, 

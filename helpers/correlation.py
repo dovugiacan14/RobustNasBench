@@ -4,7 +4,7 @@ from scipy.stats import spearmanr
 from collections import defaultdict
 from .search_space import NASBench201SearchSpace
 
-zero_cost_metrics = [
+search_metrics = [
     "epe_nas", 
     "fisher", 
     "grad_norm", 
@@ -80,7 +80,7 @@ def compute_correlation(zc_nasbench, robustnas, dataset):
         auto_attack.append(robust_evals["autoattack"])
 
         # get zero-cost results 
-        for metric in zero_cost_metrics:
+        for metric in search_metrics:
             if metric == "val_accuracy": 
                 zc_eval_dict[metric].append(details[metric])
             else: 

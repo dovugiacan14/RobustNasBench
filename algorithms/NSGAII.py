@@ -22,7 +22,7 @@ INF = 9999999
 
 
 class NSGAII:
-    def __init__(self, **kwargs):
+    def __init__(self, objective, **kwargs):
         self.name = "NSGA-II"
         self.pop_size = None
         self.problem = None
@@ -33,6 +33,7 @@ class NSGAII:
         self.E_Archive_search = None
         self.E_Archive_evaluate = None
         self.individual = Individual(rank=INF, crowding=-1)
+        self.__get_objective(objective)
 
     def reset(self):
         self.pop = None
@@ -67,6 +68,12 @@ class NSGAII:
         self.IGD_history_evaluate = []
         self.individual = Individual(rank=INF, crowding=-1)
 
+    def __get_objective(self, objective):
+        first_objective = objective.split("/")[0]
+        second_objective = objective.split("/")[1]
+        self.obj1 = first_objective
+        self.obj2 = second_objective 
+
     def set_hyperparameters(
         self,
         pop_size=None,
@@ -95,12 +102,11 @@ class NSGAII:
         for i in range(self.pop_size):
             F = self.evaluate(P[i].X)
             P[i].set("F", F)
-            # self.E_Archive_search.update(P[i], algorithm=self)
             self.E_Archive_search.update(P[i])
         self.pop = P
 
     def evaluate(self, X):
-        F = self.problem._evaluate(X)
+        F = self.problem._evaluate(X, complex_metric= self.obj1)
         self.nEvals += 1
         return F
 
@@ -110,12 +116,12 @@ class NSGAII:
 
         self.nEvals_history.append(self.nEvals)
 
-        IGD_value_search = calculate_IGD_value(
-            pareto_front=self.problem.pareto_front_validation,
-            non_dominated_front=non_dominated_front,
-        )
+        # IGD_value_search = calculate_IGD_value(
+        #     pareto_front=self.problem.pareto_front_validation,
+        #     non_dominated_front=non_dominated_front,
+        # )
 
-        self.IGD_history_search.append(IGD_value_search)
+        # self.IGD_history_search.append(IGD_value_search)
         self.E_Archive_history_search.append(
             [
                 self.E_Archive_search.X.copy(),
@@ -129,10 +135,14 @@ class NSGAII:
         for i in range(size):
             X = self.E_Archive_search.X[i]
             hashKey = get_hashkey(X)
-            F = [
-                self.problem._get_complexity_metric(X),
-                1 - self.problem._get_accuracy(X, final=True),
-            ]
+            score_obj1 = self.problem._get_complexity_metric(X, self.obj1)
+            robustness_metric = self.problem._get_robustness_metric(X)
+            score_obj2 = 1 - robustness_metric[self.obj2]
+            # F = [
+            #     self.problem._get_complexity_metric(X, self.obj1),
+            #     1 - self.problem._get_accuracy(X, final=True),
+            # ]
+            F = [score_obj1, score_obj2]
             tmp_pop[i].set("X", X)
             tmp_pop[i].set("hashKey", hashKey)
             tmp_pop[i].set("F", F)
@@ -152,7 +162,6 @@ class NSGAII:
             pareto_front=self.problem.pareto_front_testing,
             non_dominated_front=non_dominated_front,
         )
-
         self.IGD_history_evaluate.append(IGD_value_evaluate)
         self.E_Archive_history_evaluate.append(
             [
@@ -174,7 +183,7 @@ class NSGAII:
         pop = self.survival.do(pool, self.pop_size)
         self.pop = pop 
 
-    def do_each_gen(self, metric):
+    def do_each_gen(self):
         non_dominated_front = np.array(self.E_Archive_search.F)
         non_dominated_front = np.unique(non_dominated_front, axis=0)
 
@@ -187,7 +196,7 @@ class NSGAII:
         )
 
         IGD_value_search = calculate_IGD_value(
-            pareto_front=self.problem.pareto_front_validation,
+            pareto_front=self.problem.pareto_front_testing,
             non_dominated_front=non_dominated_front,
         )
 
@@ -233,14 +242,14 @@ class NSGAII:
         visualize_Elitist_Archive_and_Pareto_Front(
             elitist_archive= self.E_Archive_search.F, 
             pareto_front= self.problem.pareto_front_validation, 
-            objective_0= self.problem.objective_lst[0], 
+            objective_0= self.problem.objectives_lst[0], 
             path_results= self.path_results, 
             error= "search"
         )
         visualize_Elitist_Archive_and_Pareto_Front(
             elitist_archive= self.E_Archive_history_evaluate[-1][-1], 
             pareto_front= self.problem.pareto_front_testing,
-            objective_0= self.problem.objective_lst[0],
+            objective_0= self.problem.objectives_lst[0],
             path_results= self.path_results, 
             error= "evaluate"
         )
@@ -264,5 +273,5 @@ class NSGAII:
         while self.nEvals < self.problem.maxEvals:
             self.nGens += 1
             self.next(self.pop)
-            self.do_each_gen(metric=self.problem.zc_metric)
+            self.do_each_gen()
         self.finalize(metric=self.problem.zc_metric)

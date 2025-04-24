@@ -52,18 +52,34 @@ population_size_dict = {
     "MO-NAS201-3": 20,
 }
 
-zero_cost_metrics = {
-    0:  "epe_nas", 
-    1:  "fisher", 
-    2:  "grad_norm", 
-    3:  "grasp",
-    4:  "l2_norm", 
-    5:  "jacov", 
-    6:  "nwot", 
-    7:  "plain", 
-    8:  "snip",
-    9:  "synflow",
-    10: "zen"
+objectives = {
+    0: "flops/rob_val_acc",
+    1: "flops/val_fgsm_3",
+    2: "flops/val_fgsm_8",
+    3: "flops/val_pgd_3",
+    4: "flops/val_pgd_8",
+    5: "flops/autoattack",
+    6: "params/rob_val_acc",
+    7: "params/val_fgsm_3",
+    8: "params/val_fgsm_8",
+    9: "params/val_pgd_3",
+    10: "params/val_pgd_8",
+    11: "params/autoattack",
+}
+
+search_metrics = {
+    0: "epe_nas",
+    1: "fisher",
+    2: "grad_norm",
+    3: "grasp",
+    4: "l2_norm",
+    5: "jacov",
+    6: "nwot",
+    7: "plain",
+    8: "snip",
+    9: "synflow",
+    10: "zen",
+    11: "val_acc_clean",
 }
 
 attack_method = {
@@ -72,10 +88,10 @@ attack_method = {
     2: "val_pgd_3.0_acc",
     3: "val_pgd_8.0_acc",
     4: "autoattack",
-    5: "val_acc"
+    5: "val_acc",
 }
 
-# Encode - Decode Architecture 
+# Encode - Decode Architecture
 AVAILABLE_OPERATIONS = [
     "none",
     "skip_connect",

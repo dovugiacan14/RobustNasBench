@@ -3,15 +3,15 @@ import time
 import argparse
 from sys import platform
 from datetime import datetime
+from src.factory import get_problem
 from helpers.utils import create_directory
-from src.factory import get_problem, get_algorithm
-from constant import population_size_dict, zero_cost_metrics
+from constant import population_size_dict, search_metrics, objectives
 
+from algorithms.NSGAII import NSGAII
+from algorithms.GeneticAlgorithm import GeneticAlgorithm
 from operators.crossover import PointCrossover
 from operators.mutation import BitStringMutation
 from operators.sampling.random_sampling import RandomSampling
-from algorithms.GeneticAlgorithm import GeneticAlgorithm
-from algorithms.NSGAII import NSGAII
 from operators.selection import TournamentSelection, RankAndCrowdingSurvival
 
 
@@ -34,11 +34,9 @@ def parse_argument():
         default="MO-NAS201-1",
         help="the problem name",
         choices=[
-            "SO-NAS101",
             "SO-NAS201-1",
             "SO-NAS201-2",
             "SO-NAS201-3",
-            "MO-NAS101",
             "MO-NAS201-1",
             "MO-NAS201-2",
             "MO-NAS201-3",
@@ -50,6 +48,7 @@ def parse_argument():
         "--algorithm_name",
         type=str,
         default="NSGA-II",
+        # default="GA",
         help="the algorithm name",
         choices=["GA", "NSGA-II"],
     )
@@ -66,11 +65,21 @@ def parse_argument():
         "--n_runs", type=int, default=2, help="number of experiment runs"
     )
     parser.add_argument(
-        "--metric", type=int, default=9, help="zero-cost metric to search", choices=range(0, 11)
+        "--metric",
+        type=int,
+        default=9,
+        help="zero-cost metric to search",
+        choices=range(0, 12),
     )
-    # parser.add_argument(
-    #     "--attack", type=int, default=5, help="type of attack", choices=range(0, 6)
-    # )
+
+    parser.add_argument(
+        "--objective",
+        type=int,
+        default=0,
+        help="objectives to optimize NSGA-II",
+        choices=range(0, 12),
+    )
+
     parser.add_argument("--seed", type=int, default=0, help="random seed")
     parser.add_argument("--debug", type=int, default=0, help="debug mode (0 or 1)")
 
@@ -79,16 +88,18 @@ def parse_argument():
 
 def main(args):
     # create folder to save result
-    base_results_path = create_directory(args.path_results or root_project, zero_cost_metrics[args.metric])
-    timestamp = datetime.now().strftime(f"{args.problem_name}_{args.algorithm_name}_%d%m%H%M%S")
+    base_results_path = create_directory(
+        args.path_results or root_project, search_metrics[args.metric]
+    )
+    timestamp = datetime.now().strftime(
+        f"{args.problem_name}_{args.algorithm_name}_%d%m%H%M%S"
+    )
     root_path = create_directory(base_results_path, timestamp)
     PATH_DATA = os.path.join(root_project, "data")
-   
+
     # initialize problem
     problem = get_problem(
-        problem_name=args.problem_name, 
-        metric=args.metric, 
-        path_data=PATH_DATA
+        problem_name=args.problem_name, metric=args.metric, path_data=PATH_DATA
     )
     problem._set_up()
 
@@ -107,8 +118,10 @@ def main(args):
         algorithm = GeneticAlgorithm()
         survival = TournamentSelection(k=4)
     elif args.algorithm_name == "NSGA-II":
-        algorithm = NSGAII()
+        objective = objectives[args.objective]
+        algorithm = NSGAII(objective=objective)
         survival = RankAndCrowdingSurvival()
+        problem._set_pareto_front(objective)
     else:
         raise ValueError()
 

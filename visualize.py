@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from collections import defaultdict
-from constant import attack_method, zero_cost_metrics
+from constant import attack_method, search_metrics
 
 
 def parse_arguments():
@@ -262,7 +262,7 @@ if __name__ == "__main__":
         
         visualize_nGen_accuracy(
             stats= summray_stats, 
-            metric_name= zero_cost_metrics[args.metric], 
+            metric_name= search_metrics[args.metric], 
         )
 
     elif args.option == 2: 

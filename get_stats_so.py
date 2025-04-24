@@ -1,27 +1,11 @@
 import os
 import json
 import pickle
+import logging
 import numpy as np
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
-
-
-def setup_logging(log_file='logging.txt'):
-    """Set up logging to write to both console and file"""
-    import logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
-    )
-    return logging.getLogger()
-
-
-logger = setup_logging()
 
 
 def collect_acc_statistics(base_result_dir: str, best_arch_filename: str):
@@ -60,7 +44,7 @@ def collect_acc_statistics(base_result_dir: str, best_arch_filename: str):
         file_path = subdir_path / best_arch_filename.strip()
 
         if not file_path.exists():
-            logger.info(f"File not found: {file_path}")
+            logging.info(f"File not found: {file_path}")
             continue
 
         with open(file_path, "rb") as f:
@@ -111,7 +95,7 @@ def collect_total_eval_attacking(base_dir: str, best_arch_filename: str):
 def export_all_eval_results(base_path: str, output_excel_path: str = "output.xlsx"):
     best_arch_filename = "best_architecture_each_gen.p"
 
-    with pd.ExcelWriter(output_excel_path, engine='openpyxl', mode='w') as writer:
+    with pd.ExcelWriter(output_excel_path, engine="openpyxl", mode="w") as writer:
         for path in os.listdir(base_path):
             print(f"******************{path}*********************")
             base_dir = os.path.join(base_path, path)
@@ -149,16 +133,17 @@ def get_optimal_statistics(cfg_path):
     optimal_stats = {key: max(values) for key, values in stats_dict.items()}
     return optimal_stats
 
-def get_optimal_acc_stats(p_path): 
-    with open(p_path, "rb") as p: 
+
+def get_optimal_acc_stats(p_path):
+    with open(p_path, "rb") as p:
         data = pickle.load(p)
-    
+
     stats = data["200"]
     test_acc_lst = []
     for _, val in stats.items():
         test_acc = val["test_acc"][-1]
         test_acc_lst.append(test_acc)
-    return np.max(test_acc_lst) 
+    return np.max(test_acc_lst)
 
 
 if __name__ == "__main__":

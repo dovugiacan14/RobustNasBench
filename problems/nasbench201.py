@@ -18,6 +18,10 @@ if not nas_robbench_file.exists():
         f"Nas-Robust Benchmark config file not found: {nas_robbench_file}"
     )
 
+pareto_front_dir = Path(os.environ["PARETO_FRONT_DIR"])
+if not pareto_front_dir.exists():
+    raise FileNotFoundError(f"Pareto front file not found: {pareto_front_dir}")
+
 
 def get_key_in_data(arch):
     """
@@ -97,7 +101,7 @@ class NASBench201:
         if final:
             acc = self.data["200"][key]["test_acc"][-1]
         else:
-            acc = self.data["200"][key]["val_acc"][-1]
+            acc = self.data["12"][key]["val_acc"][-1]
         return acc
 
     def _get_zero_cost_metric(self, arch, metric, final=False):
@@ -106,7 +110,21 @@ class NASBench201:
             zero_cost_eval_dict = self.zero_cost_data[dataset]
             str_arch = decode_architecture(arch)
             encode_arch = convert_str_to_ops(str_arch)
-            score = zero_cost_eval_dict[encode_arch][metric]["score"]
+            if metric == "val_accuracy":
+                score = zero_cost_eval_dict[encode_arch][metric]
+            else:
+                score = zero_cost_eval_dict[encode_arch][metric]["score"]
+            return score
+        except Exception as e:
+            raise e
+
+    def _get_robust_val_metric(self, arch):
+        try:
+            str_arch = decode_architecture(arch)
+            # encode_arch = convert_str_to_ops(str_arch)
+            # encode_arch = np.array(eval(encode_arch))
+            # decode_arch = decode_architecture(encode_arch)
+            score = self.robustness_data[str_arch]["val_acc"]["threeseed"]
             return score
         except Exception as e:
             raise e
@@ -118,35 +136,36 @@ class NASBench201:
             decode_arch = decode_architecture(encode_arch)
             robustness_eval_dict = self.robustness_data[decode_arch]
             summary_score["rob_val_acc"] = robustness_eval_dict["val_acc"]["threeseed"]
-            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"][
-                "threeseed"
-            ]
-            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"][
-                "threeseed"
-            ]
-            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"][
-                "threeseed"
-            ]
-            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"][
-                "threeseed"
-            ]
+            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"]["threeseed"]
+            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"]["threeseed"]
+            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"]["threeseed"]
+            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"]["threeseed"]
             summary_score["autoattack"] = robustness_eval_dict["autoattack"]
             return summary_score
         except Exception as e:
             raise e
 
-    def _get_complexity_metric(self, arch):
+    def _get_complexity_metric(self, arch, complex_metric=None):
         """
         - In NAS-Bench-201 problem, the efficiency metric is nFLOPs.
         - The returned nFLOPs is normalized.
         """
         key = get_key_in_data(arch)
-        nFLOPs = round(
-            (self.data["200"][key]["FLOPs"] - self.min_max["FLOPs"]["min"])
-            / (self.min_max["FLOPs"]["max"] - self.min_max["FLOPs"]["min"]),
+        if complex_metric == "flops":
+            complex_metric = "FLOPs"
+
+        score = round(
+            (
+                self.data["200"][key][complex_metric]
+                - self.min_max[complex_metric]["min"]
+            )
+            / (
+                self.min_max[complex_metric]["max"]
+                - self.min_max[complex_metric]["min"]
+            ),
             6,
         )
-        return nFLOPs
+        return score
 
     def _set_up(self):
         available_datasets = ["CIFAR-10", "CIFAR-100", "ImageNet16-120"]
@@ -178,40 +197,66 @@ class NASBench201:
             self.min_max = pickle.load(f_min_max)
             f_min_max.close()
 
-            f_pareto_front_testing = open(
-                f"{self.path_data}/[{self.dataset}]_pareto_front(testing).p", "rb"
-            )
-            self.pareto_front_testing = pickle.load(f_pareto_front_testing)
-            f_pareto_front_testing.close()
+            # f_pareto_front_testing = open(
+            #     f"{self.path_data}/[{self.dataset}]_pareto_front(testing).p", "rb"
+            # )
+            # self.pareto_front_testing = pickle.load(f_pareto_front_testing)
+            # f_pareto_front_testing.close()
 
-            f_pareto_front_validation = open(
-                f"{self.path_data}/[{self.dataset}]_pareto_front(validation).p", "rb"
-            )
-            self.pareto_front_validation = pickle.load(f_pareto_front_validation)
-            f_pareto_front_validation.close()
+            # f_pareto_front_validation = open(
+            #     f"{self.path_data}/[{self.dataset}]_pareto_front(validation).p", "rb"
+            # )
+            # self.pareto_front_validation = pickle.load(f_pareto_front_validation)
+            # f_pareto_front_validation.close()
 
         print("--> Set Up - Done")
+
+    def _set_pareto_front(self, objective):
+        sub_dir = os.path.join(pareto_front_dir, self.dataset)
+        if not os.path.exists(sub_dir):
+            raise FileNotFoundError(f"Pareto front file not found: {sub_dir}")
+        
+        obj1, obj2 = objective.split("/")
+        pareto_front_filename = f"{obj1}_{obj2}.p"
+
+        with open(os.path.join(sub_dir, pareto_front_filename), "rb") as file:
+            self.pareto_front_testing = pickle.load(file)
+        file.close()
+
 
     def _get_a_compact_architecture(self):
         return np.random.choice(self.available_ops, self.maxLength)
 
-    def _evaluate(self, arch):
-        acc = (
-            self._get_accuracy(arch)
-            if self.zc_metric == "val_acc"
-            else self._get_zero_cost_metric(arch, self.zc_metric)
-        )
+    # def _evaluate(self, arch):
+    #     # get score
+    #     if self.zc_metric == "val_acc_clean":
+    #         acc = self._get_robust_val_metric(arch)
+    #     elif self.zc_metric == "val_acc":
+    #         acc = self._get_accuracy(arch)
+    #     else:
+    #         acc = self._get_zero_cost_metric(arch, self.zc_metric)
+
+    #     # return score
+    #     if self.type_of_problem == "single-objective":
+    #         return acc
+    #     else:
+    #         if self.zc_metric == "val_acc_clean":
+    #             return [self._get_complexity_metric(arch), 1 - acc]
+    #         else:
+    #             return [self._get_complexity_metric(arch), -acc]
+    def _evaluate(self, arch, complex_metric=None):
+        # select accuracy metric
+        if self.zc_metric == "val_acc_clean":
+            acc = self._get_robust_val_metric(arch)
+        elif self.zc_metric == "val_acc":
+            acc = self._get_accuracy(arch)
+        else:
+            acc = self._get_zero_cost_metric(arch, self.zc_metric)
+
         if self.type_of_problem == "single-objective":
             return acc
-        return [self._get_complexity_metric(arch), 1 - acc]
 
-        # if self.zc_metric == "val_acc":
-        #     acc = self._get_accuracy(arch)
-        # else:
-        #     acc = self._get_zero_cost_metric(arch, self.zc_metric)
-
-        # if self.type_of_problem == "single-objective":
-        #     return acc
-        # elif self.type_of_problem == "multi-objective":
-        #     complex_metric = self._get_complexity_metric(arch)
-        #     return [complex_metric, 1 - acc]
+        # For multi-objective, return [complexity, -accuracy]
+        complexity = self._get_complexity_metric(arch, complex_metric)
+        acc_obj = 1 - acc if self.zc_metric == "val_acc_clean" else -acc
+        return [complexity, acc_obj]
