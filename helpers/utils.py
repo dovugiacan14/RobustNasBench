@@ -116,11 +116,15 @@ def visualize_IGD_value_and_nEvals(
 
 
 def visualize_Elitist_Archive_and_Pareto_Front(
-    elitist_archive, pareto_front, objective_0, path_results, error="testing"
+    elitist_archive, 
+    pareto_front, 
+    objective_0, 
+    path_results, 
+    error="testing"
 ):
     non_dominated_front = np.array(elitist_archive)
     non_dominated_front = np.unique(non_dominated_front, axis=0)
-
+    pareto_front = np.array(pareto_front)
     plt.scatter(
         pareto_front[:, 0],
         pareto_front[:, 1],

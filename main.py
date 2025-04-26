@@ -75,7 +75,7 @@ def parse_argument():
     parser.add_argument(
         "--objective",
         type=int,
-        default=0,
+        default=11,
         help="objectives to optimize NSGA-II",
         choices=range(0, 12),
     )
@@ -91,10 +91,7 @@ def main(args):
     base_results_path = create_directory(
         args.path_results or root_project, search_metrics[args.metric]
     )
-    timestamp = datetime.now().strftime(
-        f"{args.problem_name}_{args.algorithm_name}_%d%m%H%M%S"
-    )
-    root_path = create_directory(base_results_path, timestamp)
+   
     PATH_DATA = os.path.join(root_project, "data")
 
     # initialize problem
@@ -122,6 +119,7 @@ def main(args):
         algorithm = NSGAII(objective=objective)
         survival = RankAndCrowdingSurvival()
         problem._set_pareto_front(objective)
+        base_results_path = os.path.join(base_results_path, objective.replace("/", "-"))
     else:
         raise ValueError()
 
@@ -134,6 +132,11 @@ def main(args):
         path_data_zero_cost_method=PATH_DATA,
         debug=bool(args.debug),
     )
+
+    timestamp = datetime.now().strftime(
+        f"{args.problem_name}_{args.algorithm_name}_%d%m%H%M%S"
+    )
+    root_path = create_directory(base_results_path, timestamp)
 
     # logging and solve problem
     with open(f"{root_path}/logging.txt", "w") as f:
@@ -174,4 +177,7 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_argument()
-    main(args)
+    for obje_id in range(12):
+        print(f"Running for objective {obje_id}")
+        args.objective = obje_id 
+        main(args)
