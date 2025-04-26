@@ -1,6 +1,6 @@
 # RobustNASBench
 
-A framework for evaluating and analyzing neural architecture search (NAS) algorithms with a focus on robustness metrics.
+A framework for evaluating and analyzing neural architecture search (NAS) algorithms with a focus on robustness metrics and multi-objective optimization.
 
 ## Overview
 
@@ -9,6 +9,7 @@ This project provides tools for:
 - Analyzing architecture robustness against various adversarial attacks
 - Visualizing and comparing architecture performance metrics
 - Computing correlation between different architecture metrics
+- Multi-objective optimization of neural architectures using pymoo
 
 ## Project Structure
 
@@ -36,20 +37,39 @@ RobustNASBench/
    - Evaluate architectures on multiple objectives (accuracy, robustness)
    - Collect and analyze statistics across different metrics
    - Export results to Excel with multiple sheets
+   - Pareto front analysis and visualization
+   - Integration with pymoo for multi-objective optimization
 
 2. **Robustness Evaluation**
    - Support for various adversarial attacks (FGSM, PGD)
    - Autoattack evaluation
    - Robust validation accuracy metrics
+   - Comprehensive robustness statistics collection
 
 3. **Visualization Tools**
    - Generation-wise accuracy plots
    - Comparison charts
    - Interactive visualizations using Bokeh
+   - Pareto front visualization
+   - Multi-objective optimization results visualization
 
 4. **Correlation Analysis**
    - Compute correlations between different architecture metrics
    - Analyze relationships between robustness and other metrics
+   - Statistical significance testing
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/RobustNASBench.git
+cd RobustNASBench
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
@@ -81,15 +101,15 @@ python visualize_bokeh.py
 ```
 This will create interactive visualizations using Bokeh.
 
-## Dependencies
+### Multi-Objective Optimization
 
-- Python 3.x
-- pandas
-- numpy
-- openpyxl
-- matplotlib
-- bokeh
-- scipy
+The project uses pymoo for multi-objective optimization. Key features include:
+- NSGA-II implementation for architecture search
+- Custom objective functions for accuracy and robustness
+- Pareto front analysis and visualization
+- Multi-objective optimization results processing
+
+
 
 ## Configuration
 
@@ -112,7 +132,3 @@ Results are stored in:
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
-
-## License
-
-[Add your license information here] 
