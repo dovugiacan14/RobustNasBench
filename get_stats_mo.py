@@ -118,8 +118,7 @@ def collect_total_stats(base_dir: str, filename: str, output_path: str):
     export_result_to_excel(all_metrics_dict, output_path)
 
 if __name__ == "__main__":
-    base_path = "results/"
+    base_path = "synthesis_result/NSGA/cifar10"
     filename = "#Evals_and_Elitist_Archive_search.p"
-    output_path = "results/cifar10_stats.xlsx"
+    output_path = "cifar10_stats.xlsx"
     result = collect_total_stats(base_path, filename, output_path)
-    pass

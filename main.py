@@ -177,7 +177,10 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_argument()
-    for obje_id in range(12):
-        print(f"Running for objective {obje_id}")
-        args.objective = obje_id 
-        main(args)
+    for metric in range(0,12):
+        print(f"================== Running for Metric {metric}==========================") 
+        args.metric = metric
+        for obje_id in range(12):
+            print(f"Running for objective {obje_id}")
+            args.objective = obje_id 
+            main(args)

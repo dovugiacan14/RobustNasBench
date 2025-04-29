@@ -136,10 +136,18 @@ class NASBench201:
             decode_arch = decode_architecture(encode_arch)
             robustness_eval_dict = self.robustness_data[decode_arch]
             summary_score["rob_val_acc"] = robustness_eval_dict["val_acc"]["threeseed"]
-            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"]["threeseed"]
-            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"]["threeseed"]
-            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"]["threeseed"]
-            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"]["threeseed"]
+            summary_score["val_fgsm_3"] = robustness_eval_dict["val_fgsm_3.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_fgsm_8"] = robustness_eval_dict["val_fgsm_8.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_pgd_3"] = robustness_eval_dict["val_pgd_3.0_acc"][
+                "threeseed"
+            ]
+            summary_score["val_pgd_8"] = robustness_eval_dict["val_pgd_8.0_acc"][
+                "threeseed"
+            ]
             summary_score["autoattack"] = robustness_eval_dict["autoattack"]
             return summary_score
         except Exception as e:
@@ -197,25 +205,13 @@ class NASBench201:
             self.min_max = pickle.load(f_min_max)
             f_min_max.close()
 
-            # f_pareto_front_testing = open(
-            #     f"{self.path_data}/[{self.dataset}]_pareto_front(testing).p", "rb"
-            # )
-            # self.pareto_front_testing = pickle.load(f_pareto_front_testing)
-            # f_pareto_front_testing.close()
-
-            # f_pareto_front_validation = open(
-            #     f"{self.path_data}/[{self.dataset}]_pareto_front(validation).p", "rb"
-            # )
-            # self.pareto_front_validation = pickle.load(f_pareto_front_validation)
-            # f_pareto_front_validation.close()
-
         print("--> Set Up - Done")
 
     def _set_pareto_front(self, objective):
         sub_dir = os.path.join(pareto_front_dir, self.dataset)
         if not os.path.exists(sub_dir):
             raise FileNotFoundError(f"Pareto front file not found: {sub_dir}")
-        
+
         obj1, obj2 = objective.split("/")
         pareto_front_filename = f"{obj1}_{obj2}.p"
 
@@ -223,27 +219,9 @@ class NASBench201:
             self.pareto_front_testing = pickle.load(file)
         file.close()
 
-
     def _get_a_compact_architecture(self):
         return np.random.choice(self.available_ops, self.maxLength)
 
-    # def _evaluate(self, arch):
-    #     # get score
-    #     if self.zc_metric == "val_acc_clean":
-    #         acc = self._get_robust_val_metric(arch)
-    #     elif self.zc_metric == "val_acc":
-    #         acc = self._get_accuracy(arch)
-    #     else:
-    #         acc = self._get_zero_cost_metric(arch, self.zc_metric)
-
-    #     # return score
-    #     if self.type_of_problem == "single-objective":
-    #         return acc
-    #     else:
-    #         if self.zc_metric == "val_acc_clean":
-    #             return [self._get_complexity_metric(arch), 1 - acc]
-    #         else:
-    #             return [self._get_complexity_metric(arch), -acc]
     def _evaluate(self, arch, complex_metric=None):
         # select accuracy metric
         if self.zc_metric == "val_acc_clean":
