@@ -31,7 +31,7 @@ def parse_argument():
         "--problem_name",
         "-problem",
         type=str,
-        default="MO-NAS201-1",
+        default="SO-NAS201-1",
         help="the problem name",
         choices=[
             "SO-NAS201-1",
@@ -47,8 +47,8 @@ def parse_argument():
     parser.add_argument(
         "--algorithm_name",
         type=str,
-        default="NSGA-II",
-        # default="GA",
+        # default="NSGA-II",
+        default="GA",
         help="the algorithm name",
         choices=["GA", "NSGA-II"],
     )
@@ -67,9 +67,10 @@ def parse_argument():
     parser.add_argument(
         "--metric",
         type=int,
-        default=9,
+        # default=9,
+        default= 12, 
         help="zero-cost metric to search",
-        choices=range(0, 12),
+        choices=range(0, 13),
     )
 
     parser.add_argument(
@@ -177,10 +178,11 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_argument()
-    for metric in range(0,12):
-        print(f"================== Running for Metric {metric}==========================") 
-        args.metric = metric
-        for obje_id in range(12):
-            print(f"Running for objective {obje_id}")
-            args.objective = obje_id 
-            main(args)
+    main(args)
+    # for metric in range(0,12):
+    #     print(f"================== Running for Metric {metric}==========================") 
+    #     args.metric = metric
+    #     for obje_id in range(12):
+    #         print(f"Running for objective {obje_id}")
+    #         args.objective = obje_id 
+    #         main(args)

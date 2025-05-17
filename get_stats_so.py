@@ -85,7 +85,7 @@ def collect_total_eval_attacking(base_dir: str, best_arch_filename: str):
         last_gen_eval = stat["gen149"]
         last_gen_eval = np.array(last_gen_eval)
         mean = np.mean(last_gen_eval) * 100.00
-        std = np.std(last_gen_eval)
+        std = np.std(last_gen_eval) * 100.00
         formatted = f"{mean:.2f} ± {std:.4f}"
         all_metrics[type_metric] = formatted
 
@@ -148,8 +148,8 @@ def get_optimal_acc_stats(p_path):
 
 if __name__ == "__main__":
     base_path = "results/"
-    cfg_path = "config/imagenet.json"
-    nasbench_path = "data/NASBench201/[ImageNet16-120]_data.p"
+    cfg_path = "config/cifar10.json"
+    nasbench_path = "data/NASBench201/[CIFAR-10]_data.p"
 
     export_all_eval_results(base_path)
     # optimal_stats = get_optimal_statistics(cfg_path)

@@ -80,6 +80,7 @@ search_metrics = {
     9: "synflow",
     10: "zen",
     11: "val_acc_clean",
+    12: "zcp_robustness"
 }
 
 attack_method = {

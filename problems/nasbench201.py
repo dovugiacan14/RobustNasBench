@@ -12,6 +12,10 @@ zero_cost_file = Path(os.environ["ZERO_COST_NASBENCH201"])
 if not zero_cost_file.exists():
     raise FileNotFoundError(f"Zero-cost config file not found: {zero_cost_file}")
 
+robustness_zero_cost_file = Path(os.environ["ZCP_NASBENCH201"])
+if not robustness_zero_cost_file.exists(): 
+    raise FileNotFoundError(f"Robustness Zeco-cost file not found: {robustness_zero_cost_file}")
+
 nas_robbench_file = Path(os.environ["NAS_ROBBENCH"])
 if not nas_robbench_file.exists():
     raise FileNotFoundError(
@@ -90,6 +94,7 @@ class NASBench201:
         self.path_data = kwargs["path_data"] + "/NASBench201"
         self.data = None
         self.zero_cost_data = None
+        self.robustness_zero_cost = None
         self.robustness_data = None
         self.best_arch = None
 
@@ -105,6 +110,8 @@ class NASBench201:
         return acc
 
     def _get_zero_cost_metric(self, arch, metric, final=False):
+        if metric == "zcp_robustness":
+            return -1
         try:
             dataset = normalize_data_name(self.dataset)
             zero_cost_eval_dict = self.zero_cost_data[dataset]
@@ -117,6 +124,12 @@ class NASBench201:
             return score
         except Exception as e:
             raise e
+    
+    def _get_zcp_metric(self, arch): 
+        dataset = normalize_data_name(self.dataset)
+        str_arch = decode_architecture(arch)
+        score = self.robustness_zero_cost[str_arch]
+        return -score
 
     def _get_robust_val_metric(self, arch):
         try:
@@ -192,6 +205,11 @@ class NASBench201:
             self.zero_cost_data = json.load(file)
         file.close()
 
+        # load robustness zero-cost proxy data 
+        with open(robustness_zero_cost_file, "r") as zcp_file: 
+            self.robustness_zero_cost = json.load(zcp_file)
+        zcp_file.close()
+
         # load attack method data
         with open(nas_robbench_file, "r") as rb_file:
             self.robustness_data = json.load(rb_file)
@@ -228,6 +246,8 @@ class NASBench201:
             acc = self._get_robust_val_metric(arch)
         elif self.zc_metric == "val_acc":
             acc = self._get_accuracy(arch)
+        elif self.zc_metric == "zcp_robustness":
+            acc = self._get_zcp_metric(arch)
         else:
             acc = self._get_zero_cost_metric(arch, self.zc_metric)
 
