@@ -128,7 +128,7 @@ class NASBench201:
     def _get_zcp_metric(self, arch): 
         dataset = normalize_data_name(self.dataset)
         str_arch = decode_architecture(arch)
-        score = self.robustness_zero_cost[str_arch]
+        score = self.robustness_zero_cost[dataset][str_arch]
         return -score
 
     def _get_robust_val_metric(self, arch):
