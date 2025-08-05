@@ -1,11 +1,26 @@
 """
 Inspired: https://github.com/msu-coinlab/pymoo
 """
+import json
 import pickle
 import numpy as np 
 import matplotlib.pyplot as plt 
 from helpers.utils import set_seed
 from helpers.elastic_archive import ElitistArchive
+
+def to_serializable(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, dict):
+        return {k: to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_serializable(i) for i in obj]
+    else:
+        return obj  # fallback (assume it's serializable)
 
 
 class GeneticAlgorithm:
@@ -133,8 +148,25 @@ class GeneticAlgorithm:
 
         idx_best_arch = F == best_arch_F
         best_arch_X_list = np.unique(self.pop.get("X")[idx_best_arch], axis= 0)
+
+        # ### Add more
+        # tmp_arr = [] 
+        # remaining_arch_X_list = np.unique(self.pop.get("X")[~ idx_best_arch], axis= 0)
+        # for arch_X in remaining_arch_X_list:
+        #     remaining_arch_info = {
+        #         "X": arch_X, 
+        #         "search_metric": self.problem._get_zero_cost_metric(arch_X, metric), 
+        #         "robust_acc": self.problem._get_robustness_metric(arch_X), 
+        #         "test_acc": self.problem._get_accuracy(arch_X, final= True), 
+        #         "val_acc": self.problem._get_accuracy(arch_X)
+        #     }
+        #     tmp_arr.append(remaining_arch_info)
+        # json_ready_data = to_serializable(tmp_arr)
+        # with open("remaining_arch_info.json", "w") as file:
+        #     json.dump(json_ready_data, file)
+        # ### 
         best_arch_list = []
-        if metric == "val_acc_clean": 
+        if metric == "val_acc": 
             metric = "val_accuracy"
         for arch_X in best_arch_X_list: 
             arch_info = {
@@ -145,6 +177,10 @@ class GeneticAlgorithm:
                 "val_acc": self.problem._get_accuracy(arch_X)
             }
             best_arch_list.append(arch_info)
+        json_ready_data = to_serializable(best_arch_list)
+        with open("best_info.json", "w") as zfile:
+            json.dump(json_ready_data, zfile)
+
         self.best_arch_history.append(best_arch_list)
         self.nGens_history.append(self.nGens + 1) 
     

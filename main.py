@@ -62,13 +62,12 @@ def parse_argument():
         help="path for saving results",
     )
     parser.add_argument(
-        "--n_runs", type=int, default=2, help="number of experiment runs"
+        "--n_runs", type=int, default=31, help="number of experiment runs"
     )
     parser.add_argument(
         "--metric",
         type=int,
-        # default=9,
-        default= 12, 
+        default= 11, 
         help="zero-cost metric to search",
         choices=range(0, 13),
     )
@@ -76,7 +75,7 @@ def parse_argument():
     parser.add_argument(
         "--objective",
         type=int,
-        default=11,
+        default=0,
         help="objectives to optimize NSGA-II",
         choices=range(0, 12),
     )
@@ -179,10 +178,3 @@ def main(args):
 if __name__ == "__main__":
     args = parse_argument()
     main(args)
-    # for metric in range(0,12):
-    #     print(f"================== Running for Metric {metric}==========================") 
-    #     args.metric = metric
-    #     for obje_id in range(12):
-    #         print(f"Running for objective {obje_id}")
-    #         args.objective = obje_id 
-    #         main(args)

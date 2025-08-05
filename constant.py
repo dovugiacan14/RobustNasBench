@@ -79,7 +79,7 @@ search_metrics = {
     8: "snip",
     9: "synflow",
     10: "zen",
-    11: "val_acc_clean",
+    11: "val_acc",
     12: "zcp_robustness"
 }
 

@@ -106,12 +106,12 @@ class NASBench201:
         if final:
             acc = self.data["200"][key]["test_acc"][-1]
         else:
-            acc = self.data["12"][key]["val_acc"][-1]
+            acc = self.data["200"][key]["val_acc"][11]
         return acc
 
     def _get_zero_cost_metric(self, arch, metric, final=False):
         if metric == "zcp_robustness":
-            return -1
+            return self._get_zcp_metric(arch)
         try:
             dataset = normalize_data_name(self.dataset)
             zero_cost_eval_dict = self.zero_cost_data[dataset]
