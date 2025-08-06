@@ -31,33 +31,6 @@ RobustNASBench/
 └── constant.py        # Constants and configuration
 ```
 
-## Key Features
-
-1. **Multi-Objective Analysis**
-   - Evaluate architectures on multiple objectives (accuracy, robustness)
-   - Collect and analyze statistics across different metrics
-   - Export results to Excel with multiple sheets
-   - Pareto front analysis and visualization
-   - Integration with pymoo for multi-objective optimization
-
-2. **Robustness Evaluation**
-   - Support for various adversarial attacks (FGSM, PGD)
-   - Autoattack evaluation
-   - Robust validation accuracy metrics
-   - Comprehensive robustness statistics collection
-
-3. **Visualization Tools**
-   - Generation-wise accuracy plots
-   - Comparison charts
-   - Interactive visualizations using Bokeh
-   - Pareto front visualization
-   - Multi-objective optimization results visualization
-
-4. **Correlation Analysis**
-   - Compute correlations between different architecture metrics
-   - Analyze relationships between robustness and other metrics
-   - Statistical significance testing
-
 ## Installation
 
 1. Clone the repository:
@@ -72,42 +45,48 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+## 🧬 Genetic Algorithm (GA)
 
-### Collecting Statistics
+1. **Chạy GA**  
+   - Sử dụng script `main.py` với tham số:
+     - `--problem`: chọn một trong các giá trị `"SO-NAS201-1"`, `"SO-NAS201-2"` hoặc `"SO-NAS201-3"`.
+     - `--algorithm_name`: đặt là `"GA"`.
+   - Thông tin chi tiết có thể tham khảo trong file [`constant.py`](./constant.py).
 
-1. **Multi-Objective Statistics**
-```python
-python get_stats_mo.py
-```
-This will process results from the `results/` directory and generate an Excel file with multiple sheets containing statistics for different metrics.
+2. **Cấu hình Dataset**  
+   - Trong file `.env`, thay đổi giá trị biến `NAS_ROBBENCH` để trỏ tới dataset bạn muốn sử dụng.  
+     Ví dụ:
+     ```env
+     NAS_ROBBENCH=config/cifar10
+     ```
+     nếu bạn muốn dùng bộ chỉ số NAS-RobBench-201 trên CIFAR-10.
 
-2. **Single-Objective Statistics**
-```python
-python get_stats_so.py
-```
-This will collect and analyze single-objective experiment results.
+3. **Lưu kết quả**  
+   - Kết quả sau khi chạy được lưu tại đường dẫn chỉ định bởi `--path_results`.  
+   - Ví dụ, nếu bạn chạy với `--path_results results`, thư mục `results/` sẽ chứa các output.
 
-### Visualization
+4. **Thu thập chỉ số kết quả**  
+   - Mở file [`get_stats_so.py`](./get_stats_so.py) và đặt biến `base_path` trỏ đến thư mục kết quả của bạn (ví dụ: `base_path="results"`).
+   - Script này sẽ tự động thu thập các chỉ số của GA.
 
-1. **Basic Visualization**
-```python
-python visualize.py
-```
-This will generate various plots and charts for analyzing architecture performance.
+5. **Lưu ý**  
+   - Bạn có thể chạy hết 11 chỉ số search metric, lưu tất cả vào cùng thư mục `results/`, rồi mới thu thập dữ liệu một lần, thay vì thu thập riêng lẻ.
 
-2. **Interactive Visualization**
-```python
-python visualize_bokeh.py
-```
-This will create interactive visualizations using Bokeh.
+---
 
-### Multi-Objective Optimization
+## ♻️ NSGA-II (Multi-Objective)
 
-The project uses pymoo for multi-objective optimization. Key features include:
-- NSGA-II implementation for architecture search
-- Custom objective functions for accuracy and robustness
-- Pareto front analysis and visualization
-- Multi-objective optimization results processing
+1. **Chạy NSGA-II**  
+   - Sử dụng script `main.py` với tham số:
+     - `--problem`: chọn một trong các giá trị `"MO-NAS201-1"`, `"MO-NAS201-2"` hoặc `"MO-NAS201-3"`.
+     - `--algorithm_name`: đặt là `"NSGA-II"`.
+     - **Khuyến nghị**: để mặc định `--objective=1`, không cần quan tâm đến các giá trị khác vì kết quả gần như không đổi.
+
+2. **Thu thập kết quả**  
+   - Sau khi chạy xong, mở file [`get_stats_mo.py`](./get_stats_mo.py) và đặt biến `base_path` trỏ đến thư mục chứa kết quả.
+   - Đừng quên chỉnh sửa tên các dataset ở phần đầu file này cho phù hợp với thí nghiệm của bạn.
+
+---
 
 
 
