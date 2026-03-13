@@ -45,46 +45,47 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-## 🧬 Genetic Algorithm (GA)
 
-1. **Chạy GA**  
-   - Sử dụng script `main.py` với tham số:
-     - `--problem`: chọn một trong các giá trị `"SO-NAS201-1"`, `"SO-NAS201-2"` hoặc `"SO-NAS201-3"`.
-     - `--algorithm_name`: đặt là `"GA"`.
-   - Thông tin chi tiết có thể tham khảo trong file [`constant.py`](./constant.py).
+### 🧬 Genetic Algorithm (GA)
 
-2. **Cấu hình Dataset**  
-   - Trong file `.env`, thay đổi giá trị biến `NAS_ROBBENCH` để trỏ tới dataset bạn muốn sử dụng.  
-     Ví dụ:
+1. **Run GA**
+   - Use the `main.py` script with the following parameters:
+     - `--problem`: choose one of `"SO-NAS201-1"`, `"SO-NAS201-2"`, or `"SO-NAS201-3"`.
+     - `--algorithm_name`: set to `"GA"`.
+   - For detailed information, refer to the [`constant.py`](./constant.py) file.
+
+2. **Configure Dataset**
+   - In the `.env` file, change the `NAS_ROBBENCH` variable to point to the dataset you want to use.
+     Example:
      ```env
      NAS_ROBBENCH=config/cifar10
      ```
-     nếu bạn muốn dùng bộ chỉ số NAS-RobBench-201 trên CIFAR-10.
+     if you want to use the NAS-RobBench-201 metrics on CIFAR-10.
 
-3. **Lưu kết quả**  
-   - Kết quả sau khi chạy được lưu tại đường dẫn chỉ định bởi `--path_results`.  
-   - Ví dụ, nếu bạn chạy với `--path_results results`, thư mục `results/` sẽ chứa các output.
+3. **Save Results**
+   - Results after running are saved at the path specified by `--path_results`.
+   - For example, if you run with `--path_results results`, the `results/` directory will contain the outputs.
 
-4. **Thu thập chỉ số kết quả**  
-   - Mở file [`get_stats_so.py`](./get_stats_so.py) và đặt biến `base_path` trỏ đến thư mục kết quả của bạn (ví dụ: `base_path="results"`).
-   - Script này sẽ tự động thu thập các chỉ số của GA.
+4. **Collect Result Metrics**
+   - Open the file [`get_stats_so.py`](./get_stats_so.py) and set the `base_path` variable to point to your results directory (e.g., `base_path="results"`).
+   - This script will automatically collect all GA metrics.
 
-5. **Lưu ý**  
-   - Bạn có thể chạy hết 11 chỉ số search metric, lưu tất cả vào cùng thư mục `results/`, rồi mới thu thập dữ liệu một lần, thay vì thu thập riêng lẻ.
+5. **Note**
+   - You can run all 11 search metrics, save everything to the same `results/` directory, then collect data at once, instead of collecting individually.
 
 ---
 
-## ♻️ NSGA-II (Multi-Objective)
+### ♻️ NSGA-II (Multi-Objective)
 
-1. **Chạy NSGA-II**  
-   - Sử dụng script `main.py` với tham số:
-     - `--problem`: chọn một trong các giá trị `"MO-NAS201-1"`, `"MO-NAS201-2"` hoặc `"MO-NAS201-3"`.
-     - `--algorithm_name`: đặt là `"NSGA-II"`.
-     - **Khuyến nghị**: để mặc định `--objective=1`, không cần quan tâm đến các giá trị khác vì kết quả gần như không đổi.
+1. **Run NSGA-II**
+   - Use the `main.py` script with the following parameters:
+     - `--problem`: choose one of `"MO-NAS201-1"`, `"MO-NAS201-2"`, or `"MO-NAS201-3"`.
+     - `--algorithm_name`: set to `"NSGA-II"`.
+     - **Recommendation**: keep `--objective=1` as default, no need to care about other values as results remain nearly unchanged.
 
-2. **Thu thập kết quả**  
-   - Sau khi chạy xong, mở file [`get_stats_mo.py`](./get_stats_mo.py) và đặt biến `base_path` trỏ đến thư mục chứa kết quả.
-   - Đừng quên chỉnh sửa tên các dataset ở phần đầu file này cho phù hợp với thí nghiệm của bạn.
+2. **Collect Results**
+   - After running, open the file [`get_stats_mo.py`](./get_stats_mo.py) and set the `base_path` variable to point to the directory containing results.
+   - Don't forget to edit the dataset names at the beginning of this file to match your experiment.
 
 ---
 
@@ -104,10 +105,3 @@ Results are stored in:
 - `synthesis_result/`: Synthesized architecture results
 - `pareto_front/`: Pareto front results for multi-objective optimization
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
